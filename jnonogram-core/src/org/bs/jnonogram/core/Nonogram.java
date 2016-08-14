@@ -19,9 +19,19 @@ public final class Nonogram implements ReadOnlyNonogram {
     }
 
     public enum CellKind {
-        White,
-        Black,
-        Unknown
+        White ("White"),
+        Black ("Black"),
+        Unknown ("Unknown");
+
+        private final String name;
+        private CellKind(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
     }
 
     public Nonogram(

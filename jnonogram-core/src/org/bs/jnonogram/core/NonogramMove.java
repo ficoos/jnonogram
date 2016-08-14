@@ -35,17 +35,14 @@ public final class NonogramMove {
 
     @Override
     public String toString() {
-        String orientationLetter;
-        switch (_orientation) {
-            case Column:
-                orientationLetter = "c";
-                break;
-            default:
-                orientationLetter = "r";
-                break;
-        }
-
-        return String.format("%s%d,%d:%d", orientationLetter, _origin.getColumn(), _origin.getRow(), _size);
+        return String.format(
+                "%s %s (%d,%d) [%d] : %s",
+                _orientation.toString(),
+                _targetKind.toString(),
+                _origin.getColumn(),
+                _origin.getRow(),
+                _size,
+                _comment);
     }
 
     public Nonogram.CellKind getTargetKind() {

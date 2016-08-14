@@ -1,13 +1,15 @@
 package org.bs.jnonogram.tui;
 
 import org.bs.jnonogram.core.*;
+import org.bs.jnonogram.util.UndoableAction;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
 public class TerminalInterface {
     private GameInfo _gameInfo = null;
@@ -59,8 +61,17 @@ public class TerminalInterface {
                     public void doAction() {
                         enterMove();
                     }
-                })
-                .addMenuItem(new MenuAction() {
+                }).addMenuItem(new MenuAction() {
+                    @Override
+                    public String getTitle() {
+                return "Show move history";
+            }
+
+                    @Override
+                    public void doAction() {
+                showMoveHistory();
+            }
+                }).addMenuItem(new MenuAction() {
                     @Override
                     public String getTitle() {
                         return "Undo move";
@@ -82,12 +93,62 @@ public class TerminalInterface {
                         showStats();
                     }
                 })
+                .addMenuItem(new MenuAction() {
+                    @Override
+                    public String getTitle() {
+                        return "End current game";
+                    }
+
+                    @Override
+                    public void doAction() {
+                        endCurrentGame();
+                    }
+                })
                 .run();
+    }
+
+    private void endCurrentGame() {
+        if (_playerState == null) {
+            System.out.println("Game has not started yet");
+            return;
+        }
+
+        _printEndOfGameSummary();
+        _playerState = null;
+        _currentGame = null;
+        System.out.println("Game has ended");
+    }
+
+    private void _printEndOfGameSummary() {
+        if (_playerState == null) {
+            return;
+        }
+
+        showBoardState();
+        showStats();
+    }
+
+    private void showMoveHistory() {
+        if (_playerState == null) {
+            System.out.println("Game has not started yet");
+            return;
+        }
+
+        System.out.println("Move History:");
+        List<UndoableAction> actions = _playerState.getActionList();
+        int i = actions.size();
+        for (ListIterator<UndoableAction> it = actions.listIterator(i); it.hasPrevious();)
+        {
+            System.out.print(Integer.toString(i));
+            System.out.print(": ");
+            System.out.println(it.previous());
+            i--;
+        }
     }
 
     private void showStats() {
         if (_playerState == null) {
-            System.out.print("Game has not started yet");
+            System.out.println("Game has not started yet");
             return;
         }
 
@@ -112,7 +173,7 @@ public class TerminalInterface {
 
     private void undoMove() {
         if (_playerState == null) {
-            System.out.print("Game has not started yet");
+            System.out.println("Game has not started yet");
             return;
         }
 
@@ -121,7 +182,7 @@ public class TerminalInterface {
 
     private void enterMove() {
         if (_playerState == null) {
-            System.out.print("Game has not started yet");
+            System.out.println("Game has not started yet");
             return;
         }
 
@@ -159,6 +220,10 @@ public class TerminalInterface {
         }
 
         _playerState.applyMove(move);
+        if (_playerState.getScore() == 100) {
+            System.out.println("Congratulations!");
+            endCurrentGame();
+        }
     }
 
     private void showBoardState() {
@@ -191,7 +256,7 @@ public class TerminalInterface {
 
         _currentGame = new GameManager(_gameInfo);
         // We know there is only one
-        _playerState = _currentGame.getPlayerStates().iterator().next();
+        _playerState = _currentGame.getPlayerStates().get(0);
         showBoardState();
     }
 
@@ -211,13 +276,12 @@ public class TerminalInterface {
         }
 
         if (_gameInfo == null) {
-            System.out.print("Invalid XML");
+            System.out.println("Invalid Nonogram definition");
         }
 
-        Iterator<PlayerInfo> it = _gameInfo.getPlayerInfos().iterator();
-        it.next();
-        if (it.hasNext()) {
-            System.out.print("Only Single player games are supported in TUI");
+        List<PlayerInfo> playersInformation = _gameInfo.getPlayersInformation();
+        if (playersInformation.size() != 1) {
+            System.out.println("Only Single player games are supported in TUI");
             _gameInfo = null;
             return;
         }

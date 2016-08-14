@@ -28,4 +28,24 @@ public class CellPosition {
     public CellPosition clone() {
         return new CellPosition(this.column, this.row);
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof CellPosition))
+        {
+            return  false;
+        }
+
+        CellPosition otherPosition = (CellPosition) other;
+
+        return otherPosition.getRow() == getRow() && otherPosition.getColumn() == getColumn();
+    }
+
+    @Override
+    public int hashCode() {
+        int hashCode = 1;
+        hashCode = 31 * hashCode + row;
+        hashCode = 31 * hashCode + column;
+        return hashCode;
+    }
 }

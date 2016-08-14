@@ -34,6 +34,6 @@ public class NonogramMoveAction implements UndoableAction {
 
     @Override
     public String toString() {
-        return "Move";
+        return _move.toString();
     }
 }

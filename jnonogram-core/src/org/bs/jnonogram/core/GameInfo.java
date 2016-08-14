@@ -1,18 +1,15 @@
 package org.bs.jnonogram.core;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class GameInfo {
     private final Nonogram _nonogram;
-    private final int _maxMoves;
-    private final String _title;
-    private final ArrayList<PlayerInfo> _playerInfos;
+    private final GameTypeInfo _gameTypeInfo;
 
-    public GameInfo(Nonogram nonogram, int maxMoves, String title, ArrayList<PlayerInfo> playerInfos) {
+    public GameInfo(Nonogram nonogram, GameTypeInfo gameTypeInfo) {
         _nonogram = nonogram;
-        _maxMoves = maxMoves;
-        _title = title;
-        _playerInfos = playerInfos;
+        _gameTypeInfo = gameTypeInfo;
     }
 
     public Nonogram getNonogram() {
@@ -20,14 +17,14 @@ public class GameInfo {
     }
 
     public int getMaxMoves() {
-        return _maxMoves;
+        return _gameTypeInfo.getMaxMoves();
     }
 
     public String getTitle() {
-        return _title;
+        return _gameTypeInfo.getTitle();
     }
 
-    public Iterable<PlayerInfo> getPlayerInfos() {
-        return _playerInfos;
+    public List<PlayerInfo> getPlayersInformation() {
+        return Collections.unmodifiableList(_gameTypeInfo.getPlayersInformation());
     }
 }

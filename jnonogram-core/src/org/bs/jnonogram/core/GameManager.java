@@ -2,6 +2,8 @@ package org.bs.jnonogram.core;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public final class GameManager {
     private final ArrayList<PlayerState> _playerStates;
@@ -15,13 +17,13 @@ public final class GameManager {
         _nonogram = info.getNonogram();
         _title = info.getTitle();
         _playerStates = new ArrayList<>();
-        info.getPlayerInfos()
+        info.getPlayersInformation()
                 .forEach(playerInfo -> _playerStates.add(new PlayerState(_nonogram, playerInfo)));
         _maxMoves = info.getMaxMoves();
     }
 
-    public final Iterable<PlayerState> getPlayerStates() {
-        return _playerStates;
+    public final List<PlayerState> getPlayerStates() {
+        return Collections.unmodifiableList(_playerStates);
     }
 
     public final String getTitle() {

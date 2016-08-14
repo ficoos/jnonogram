@@ -1,5 +1,7 @@
 package org.bs.jnonogram.util;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Stack;
 
 public class UndoStack <T extends UndoableAction> {
@@ -26,5 +28,9 @@ public class UndoStack <T extends UndoableAction> {
 
     public boolean canUndo() {
         return _stack.size() > 0;
+    }
+
+    public List<T> getActionStack() {
+        return Collections.unmodifiableList(_stack);
     }
 }

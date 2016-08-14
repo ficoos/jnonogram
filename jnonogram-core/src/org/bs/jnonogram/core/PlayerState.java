@@ -3,12 +3,15 @@ package org.bs.jnonogram.core;
 import org.bs.jnonogram.util.UndoRedoStack;
 import org.bs.jnonogram.util.UndoableAction;
 
+import java.util.List;
+
 public class PlayerState {
     private final Nonogram _nonogram;
     private final UndoRedoStack<UndoableAction> _undoRedoStack;
     private final PlayerInfo _playerInfo;
     private int _moveCount;
     private int _undoCount;
+    private Object moveList;
 
     public PlayerState(Nonogram nonogram, PlayerInfo playerInfo) {
         _moveCount = 0;
@@ -50,5 +53,9 @@ public class PlayerState {
 
     public int getScore() {
         return _nonogram.getScore();
+    }
+
+    public List<UndoableAction> getActionList() {
+        return _undoRedoStack.getActionStack();
     }
 }

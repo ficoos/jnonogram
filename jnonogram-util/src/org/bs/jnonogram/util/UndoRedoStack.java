@@ -1,5 +1,6 @@
 package org.bs.jnonogram.util;
 
+import java.util.List;
 import java.util.Stack;
 
 public class UndoRedoStack<T extends UndoableAction> {
@@ -29,5 +30,9 @@ public class UndoRedoStack<T extends UndoableAction> {
 
         T action = _redoStack.pop();
         _undoStack.pushAction(action);
+    }
+
+    public List<T> getActionStack() {
+        return _undoStack.getActionStack();
     }
 }
