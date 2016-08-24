@@ -1,5 +1,7 @@
 package org.bs.jnonogram.core;
 
+import org.bs.jnonogram.core.jax.Block;
+
 import java.util.ArrayList;
 
 public final class Nonogram implements ReadOnlyNonogram {
@@ -17,6 +19,8 @@ public final class Nonogram implements ReadOnlyNonogram {
     public NonogramConstraint[] getColumnConstraints() {
         return _columnConstraints;
     }
+
+    public CellKind[][] getSolution() { return _solution; }
 
     public enum CellKind {
         White ("White"),
@@ -137,4 +141,143 @@ public final class Nonogram implements ReadOnlyNonogram {
 
         return  nonogram;
     }
+
+    public final void updateSatisfiedConstraints()
+    {
+        updateSatisfiedConstraints(_rowConstraints, _columnConstraints, _cells);
+    }
+
+    public final void updateSatisfiedConstraints(NonogramConstraint[] rowConstraints, NonogramConstraint[] columnConstraints, CellKind[][] cells)
+    {
+        for(int i=0; i < cells.length; i++)
+        {
+            updateSatisfiedColumnConstraints(columnConstraints, cells, i);
+        }
+
+        for(int i=0; i < cells[0].length; i++)
+        {
+            updateSatisfiedRowConstraints(rowConstraints, cells, i);
+        }
+    }
+
+
+    public final void updateSatisfiedColumnConstraints(NonogramConstraint[] rowConstraints, CellKind[][] cells, int rowIndexToUpdate)
+    {
+        int arrSize = cells[0].length;
+        CellKind[] rowSlice = new CellKind[arrSize];
+        for (int i=0; i < arrSize; i++)
+        {
+            rowSlice[i] = cells[rowIndexToUpdate][i];
+        }
+
+        updateSatisfiedConstraints(rowSlice, rowConstraints[rowIndexToUpdate]);
+    }
+
+    public final void updateSatisfiedRowConstraints(NonogramConstraint[] columnConstraints, CellKind[][] cells, int columnIndexToUpdate)
+    {
+        int arrSize = cells.length;
+        CellKind[] columSlice = new CellKind[arrSize];
+        for (int i=0; i < arrSize; i++)
+        {
+            columSlice[i] = cells[i][columnIndexToUpdate];
+        }
+
+        updateSatisfiedConstraints(columSlice, columnConstraints[columnIndexToUpdate]);
+    }
+
+    private void updateSatisfiedConstraints(CellKind[] cells, NonogramConstraint constraint) {
+        for (int i= 0; i < constraint.count(); i++)
+        {
+            constraint.getSlice(i).setSatisfied(false);
+        }
+
+        ArrayList<Block> blockArray =  devideIntoBlocks(cells);
+
+        boolean satisfactionChanged = true;
+        while (satisfactionChanged)
+        {
+            satisfactionChanged = false;
+            for (Block block : blockArray) {
+                int numOfSliceThatSatisfyBlock = 0;
+                int indexOfLastSatisfiedSlice = 0 ;
+                for (int i= 0; i < constraint.count(); i++) {
+
+                    if(constraint.getSlice(i).isSatisfied())
+                    {
+                        continue;
+                    }
+
+                    if (isBlockSatisfySlice(constraint, i, block)) {
+                        numOfSliceThatSatisfyBlock++;
+                        indexOfLastSatisfiedSlice = i;
+                    }
+                }
+
+                if(numOfSliceThatSatisfyBlock == 1) {
+                    constraint.getSlice(indexOfLastSatisfiedSlice).setSatisfied(true);
+                    satisfactionChanged = true;
+                }
+
+            }
+
+        }
+    }
+
+    private ArrayList<Block> devideIntoBlocks(CellKind[] cells) {
+        int cellsSize = cells.length;
+        ArrayList<Block> blockArray = new ArrayList<>();
+        for (int i = 0; i < cells.length; i++)
+        {
+            int start, end;
+            if(cells[i] == CellKind.Black)
+            {
+                start = i;
+                while(i < cellsSize && cells[i] == CellKind.Black){
+                    i++;
+                }
+                end = i;
+
+
+                if(start != 0 && cells[start -1] != CellKind.White)
+                {
+                    continue;
+                }
+
+
+                if(end < cellsSize && cells[end] != CellKind.White)
+                {
+                    continue;
+                }
+
+                end -= 1;
+
+                blockArray.add(new Block(start, end, cellsSize));
+            }
+        }
+
+        return blockArray;
+    }
+    private boolean isBlockSatisfySlice(NonogramConstraint constraint, int sliceIndex, Block block) {
+
+        if (block.getBlockSize() != constraint.getSlice(sliceIndex).getSize())
+        {
+            return false;
+        }
+
+        int minimumNumOfCellsOnRight = 0, minimumNumOfCellsOnLeft = 0;
+
+        for (int i = sliceIndex+1; i < constraint.count(); i++)
+        {
+            minimumNumOfCellsOnRight += constraint.getSlice(i).getSize() + 1;
+        }
+
+        for (int i = sliceIndex-1; i >= 0 ; i--)
+        {
+            minimumNumOfCellsOnLeft += constraint.getSlice(i).getSize() + 1;
+        }
+
+        return block.getNumOfCellsOnLeft() >= minimumNumOfCellsOnLeft
+                && block.getNumOfCellsOnRight() >= minimumNumOfCellsOnRight;
+    }
+
 }
