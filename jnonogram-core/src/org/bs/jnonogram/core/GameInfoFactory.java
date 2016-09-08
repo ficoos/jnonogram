@@ -81,6 +81,34 @@ public class GameInfoFactory {
 
     private static void _validateNonogram(Nonogram nonogram) throws GameInfoFactoryException {
         _validateConstraints(nonogram);
+        _validatesolution(nonogram);
+    }
+
+    private static void _validatesolution(Nonogram nonogram)throws GameInfoFactoryException
+    {
+        NonogramConstraint[] rowConstraints = NonogramConstraint.clone(nonogram.getRowConstraints());
+        NonogramConstraint[] columnConstraints = NonogramConstraint.clone(nonogram.getColumnConstraints());
+
+        nonogram.updateSatisfiedConstraints(rowConstraints, columnConstraints, nonogram.getSolution());
+
+        for (NonogramConstraint constraint : rowConstraints) {
+            for (int i = 0 ; i < constraint.count(); i++)
+            {
+                if(!constraint.getSlice(i).isSatisfied())
+                {
+                    throw new GameInfoFactoryException("Solution doesn't Match constraints");
+                }
+            }
+        }
+
+        for (NonogramConstraint constraint : columnConstraints) {
+            for (int i = 0 ; i < constraint.count(); i++)
+            {
+                if(!constraint.getSlice(i).isSatisfied()) {
+                    throw new GameInfoFactoryException("Solution doesn't Match constraints");
+                }
+            }
+        }
     }
 
     private static void _validateConstraints(Nonogram nonogram) throws GameInfoFactoryException {
@@ -92,7 +120,7 @@ public class GameInfoFactory {
         }
 
         for (NonogramConstraint constraint : nonogram.getRowConstraints()) {
-            if (constraint.count() == 0)
+            if (constraint == null || constraint.count() == 0)
             {
                 throw new GameInfoFactoryException("Missing constraints");
             }

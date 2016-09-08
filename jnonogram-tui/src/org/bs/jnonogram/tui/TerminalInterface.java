@@ -273,10 +273,12 @@ public class TerminalInterface {
         } catch (Exception e) {
             System.out.print("Could not load file: ");
             System.out.println(e.getMessage());
+            return;
         }
 
         if (_gameInfo == null) {
             System.out.println("Invalid Nonogram definition");
+            return;
         }
 
         List<PlayerInfo> playersInformation = _gameInfo.getPlayersInformation();

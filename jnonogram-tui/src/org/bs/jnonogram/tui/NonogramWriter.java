@@ -17,6 +17,8 @@ public final class NonogramWriter {
     private static final String k_FrameBottomLeftCorner = "\u2518";
     private static final String k_FrameVertical = "\u2502";
     private static final String k_FrameHorizontal = "\u2500";
+    private static final String k_Red = "\u001B[31m";
+    private static final String k_ColorReset = "\u001B[0m";
 
     private static void drawFrame(ReadOnlyNonogram nonogram, Writer writer) throws IOException {
         drawColumnConstraints(nonogram, writer);
@@ -36,7 +38,8 @@ public final class NonogramWriter {
             writer.write(k_BlankSpace);
             for (NonogramConstraint constraint : nonogram.getColumnConstraints()) {
                 if (constraint.count() >= i ) {
-                    writer.write(String.valueOf(constraint.getSlice(constraint.count() - i).getSize()));
+                    String markSatisfied = constraint.getSlice(constraint.count() - i).isSatisfied() ? k_Red : "";
+                    writer.write(markSatisfied + String.valueOf(constraint.getSlice(constraint.count() - i).getSize()) + k_ColorReset);
                 }
                 else
                 {
@@ -63,7 +66,8 @@ public final class NonogramWriter {
                 }
                 else
                 {
-                    writer.write(String.valueOf(constraint.getSlice(i).getSize()));
+                    String markSatisfied = constraint.getSlice(i).isSatisfied() ? k_Red : "";
+                    writer.write(markSatisfied+String.valueOf(constraint.getSlice(i).getSize()) + k_ColorReset);
                 }
             }
 
