@@ -208,7 +208,7 @@ public final class Nonogram implements ReadOnlyNonogram {
                     }
 
                     if (isBlockSatisfySlice(constraint, i, block)) {
-                        numOfSliceThatSatisfyBlock++;
+                        numOfSliceThatSatisfyBlock = (blockArray.size() == constraint.count()) ? 1 :numOfSliceThatSatisfyBlock + 1;
                         indexOfLastSatisfiedSlice = i;
                     }
                 }
