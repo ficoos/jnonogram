@@ -1,16 +1,34 @@
 package org.bs.jnonogram.core;
 
+import javafx.beans.property.StringProperty;
+import javafx.beans.property.StringPropertyBase;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameTypeInfo {
     private int maxMoves;
-    private String title;
+    private final StringProperty _title = new StringPropertyBase() {
+        @Override
+        public Object getBean() {
+            return this;
+        }
+
+        @Override
+        public String getName() {
+            return "Title";
+        }
+    };
+
+    public StringProperty titleProperty() {
+        return _title;
+    }
+
     private ArrayList<PlayerInfo> playersInformation;
 
     public GameTypeInfo() {
         maxMoves = -1;
-        title = "";
+        this._title.setValue("");
         playersInformation = new ArrayList<>();
     }
 
@@ -23,11 +41,11 @@ public class GameTypeInfo {
     }
 
     public String getTitle() {
-        return title;
+        return _title.getValue();
     }
 
     public void setTitle(String title) {
-        this.title = title;
+        this._title.setValue(title);
     }
 
     public List<PlayerInfo> getPlayersInformation() {

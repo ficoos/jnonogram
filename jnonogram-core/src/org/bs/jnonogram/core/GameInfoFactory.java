@@ -1,5 +1,6 @@
 package org.bs.jnonogram.core;
 
+import javafx.concurrent.Task;
 import org.bs.jnonogram.core.jax.GameDescriptor;
 import org.bs.jnonogram.core.jax.Player;
 import org.bs.jnonogram.core.jax.Slice;
@@ -10,6 +11,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 public class GameInfoFactory {
     public static GameInfo loadFromXml(String path) throws GameInfoFactoryException {
@@ -28,20 +30,54 @@ public class GameInfoFactory {
     }
 
     public static GameInfo loadFromXml(File file) throws GameInfoFactoryException {
-        GameDescriptor descriptor = loadDescriptorFromFile(file);
-        NonogramBuilder nonogramBuilder = new NonogramBuilder(
-                descriptor.getBoard().getDefinition().getRows().intValue(),
-                descriptor.getBoard().getDefinition().getColumns().intValue()
-        );
-        _loadSlices(descriptor, nonogramBuilder);
-        _loadSolution(descriptor, nonogramBuilder);
-        Nonogram nonogram = nonogramBuilder.build();
-        _validateNonogram(nonogram);
-        GameTypeInfo gameTypeInfo = _loadGameTypeInfo(descriptor);
+        Task<GameInfo> task = loadFromXmlAsync(file);
+        task.run();
+        try {
+            return task.get();
+        } catch (InterruptedException e) {
+            // Should never happen
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            throw (GameInfoFactoryException) e.getCause();
+        }
+    }
 
-        return new GameInfo(
-                nonogram,
-                gameTypeInfo);
+    public static Task<GameInfo> loadFromXmlAsync(File file) {
+        return new Task<GameInfo>() {
+            @Override
+            protected GameInfo call() throws Exception {
+                final long fakeDelay = 100; // Used so we actually see the stages in the UI
+                updateProgress(0, 4);
+                updateTitle("Load Nonogram Game File");
+                updateMessage("Loading xml");
+                Thread.sleep(fakeDelay);
+                GameDescriptor descriptor = loadDescriptorFromFile(file);
+                updateMessage("Initializing data");
+                updateProgress(1, 4);
+                Thread.sleep(fakeDelay);
+                NonogramBuilder nonogramBuilder = new NonogramBuilder(
+                        descriptor.getBoard().getDefinition().getRows().intValue(),
+                        descriptor.getBoard().getDefinition().getColumns().intValue()
+                );
+                updateMessage("Loading nonogram");
+                updateProgress(2, 4);
+                Thread.sleep(fakeDelay);
+                _loadSlices(descriptor, nonogramBuilder);
+                _loadSolution(descriptor, nonogramBuilder);
+                Nonogram nonogram = nonogramBuilder.build();
+                updateMessage("Validating nonogram");
+                updateProgress(3, 4);
+                Thread.sleep(fakeDelay);
+                _validateNonogram(nonogram);
+                GameTypeInfo gameTypeInfo = _loadGameTypeInfo(descriptor);
+
+                updateMessage("Finished Loading nonogram");
+                updateProgress(4, 4);
+                return new GameInfo(
+                        nonogram,
+                        gameTypeInfo);
+            }
+        };
     }
 
     private static GameTypeInfo _loadGameTypeInfo(GameDescriptor descriptor) throws GameInfoFactoryException {

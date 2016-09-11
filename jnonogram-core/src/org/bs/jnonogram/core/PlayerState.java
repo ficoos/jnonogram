@@ -1,12 +1,15 @@
 package org.bs.jnonogram.core;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableListValue;
 import org.bs.jnonogram.util.UndoRedoStack;
 import org.bs.jnonogram.util.UndoableAction;
 
 import java.util.List;
 
 public class PlayerState {
-    private final Nonogram _nonogram;
+    private final ObjectProperty<Nonogram> _nonogramProperty = new SimpleObjectProperty<>(this, "Nonogram");
     private final UndoRedoStack<UndoableAction> _undoRedoStack;
     private final PlayerInfo _playerInfo;
     private int _moveCount;
@@ -16,7 +19,7 @@ public class PlayerState {
     public PlayerState(Nonogram nonogram, PlayerInfo playerInfo) {
         _moveCount = 0;
         _undoCount = 0;
-        _nonogram = nonogram;
+        _nonogramProperty.setValue(nonogram);
         _playerInfo = playerInfo;
         _undoRedoStack = new UndoRedoStack<>();
     }
@@ -31,7 +34,7 @@ public class PlayerState {
     public final void redoAction() { _undoRedoStack.redoAction(); }
 
     public final ReadOnlyNonogram getNonogram() {
-        return _nonogram;
+        return _nonogramProperty.getValue();
     }
 
     public PlayerInfo getPlayerInfo() {
@@ -39,7 +42,7 @@ public class PlayerState {
     }
 
     public void applyMove(NonogramMove move) {
-        _undoRedoStack.pushAction(new NonogramMoveAction(_nonogram, move));
+        _undoRedoStack.pushAction(new NonogramMoveAction(_nonogramProperty.getValue(), move));
         _moveCount++;
     }
 
@@ -52,10 +55,18 @@ public class PlayerState {
     }
 
     public int getScore() {
-        return _nonogram.getScore();
+        return _nonogramProperty.getValue().getScore();
     }
 
     public List<UndoableAction> getActionList() {
         return _undoRedoStack.getActionStack();
+    }
+
+    public ObjectProperty<Nonogram> nonogramProperty() {
+        return _nonogramProperty;
+    }
+
+    public ObservableListValue<UndoableAction> actionListProperty() {
+        return _undoRedoStack.actionListProperty();
     }
 }

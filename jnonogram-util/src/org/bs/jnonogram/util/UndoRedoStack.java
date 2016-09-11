@@ -1,5 +1,7 @@
 package org.bs.jnonogram.util;
 
+import javafx.beans.value.ObservableListValue;
+
 import java.util.List;
 import java.util.Stack;
 
@@ -34,5 +36,9 @@ public class UndoRedoStack<T extends UndoableAction> {
 
     public List<T> getActionStack() {
         return _undoStack.getActionStack();
+    }
+
+    public ObservableListValue<T> actionListProperty() {
+        return _undoStack.actionStackProperty();
     }
 }

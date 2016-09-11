@@ -1,11 +1,16 @@
 package org.bs.jnonogram.core;
 
+import javafx.beans.property.MapProperty;
+import javafx.beans.property.MapPropertyBase;
+import javafx.beans.property.SimpleMapProperty;
+import javafx.collections.FXCollections;
 import org.bs.jnonogram.core.jax.Block;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public final class Nonogram implements ReadOnlyNonogram {
-    private final CellKind[][] _cells;
+    private final MapPropertyBase<CellPosition, CellKind> _cellsProperty;
     private final NonogramConstraint[] _rowConstraints;
     private final NonogramConstraint[] _columnConstraints;
     private final CellKind[][] _solution;
@@ -38,13 +43,17 @@ public final class Nonogram implements ReadOnlyNonogram {
         }
     }
 
+    public final MapProperty<CellPosition, CellKind> cellsProperty() {
+        return _cellsProperty;
+    }
+
     public Nonogram(
             NonogramConstraint[] rowConstraints,
             NonogramConstraint[] columnConstraints,
             Iterable<CellPosition> solution) {
         _columnCount = columnConstraints.length;
         _rowCount = rowConstraints.length;
-        _cells = new CellKind[_columnCount][_rowCount];
+        _cellsProperty = new SimpleMapProperty<>(this, "Cells", FXCollections.observableMap(new HashMap<>()));
         _solution = new CellKind[_columnCount][_rowCount];
         for (CellPosition position : solution) {
             _solution[position.getColumn()][position.getRow()] = CellKind.Black;
@@ -64,9 +73,15 @@ public final class Nonogram implements ReadOnlyNonogram {
     }
 
     public final void reset() {
-        for (int column = 0; column < _cells.length; column++) {
-            for (int row = 0; row < _cells[column].length; row++) {
-                _cells[column][row] = CellKind.Unknown;
+        for (int column = 0; column < _columnCount; column++) {
+            for (int row = 0; row < _rowCount; row++) {
+                CellPosition position = new CellPosition(column, row);
+                if (!_cellsProperty.containsKey(position)) {
+                    _cellsProperty.put(position, CellKind.Unknown);
+                }
+                else {
+                    _cellsProperty.replace(position, CellKind.Unknown);
+                }
             }
         }
     }
@@ -76,7 +91,8 @@ public final class Nonogram implements ReadOnlyNonogram {
         int correct = 0;
         for (int column = 0; column < _columnCount; column++) {
             for (int row = 0; row < _rowCount; row++) {
-                if (_cells[column][row].equals(_solution[column][row])) {
+                CellPosition position = new CellPosition(column, row);
+                if (_cellsProperty.get(position).equals(_solution[column][row])) {
                     correct++;
                 }
             }
@@ -102,21 +118,22 @@ public final class Nonogram implements ReadOnlyNonogram {
     @Override
     public final CellKind getCellAt(int column, int row)
     {
-        return _cells[column][row];
+
+        return getCellAt(new CellPosition(column, row));
     }
 
     @Override
     public final CellKind getCellAt(CellPosition position)
     {
-        return getCellAt(position.getColumn(), position.getRow());
+        return _cellsProperty.get(position);
     }
 
     public final void setCellAt(int x, int y, CellKind kind) {
-        _cells[x][y] = kind;
+        setCellAt(new CellPosition(x, y), kind);
     }
 
     public final void setCellAt(CellPosition position, CellKind kind) {
-        setCellAt(position.getColumn(), position.getRow(), kind);
+        _cellsProperty.replace(position, kind);
     }
 
     public final Nonogram clone() {
@@ -135,7 +152,7 @@ public final class Nonogram implements ReadOnlyNonogram {
                 solution);
         for (int x = 0; x < this._columnCount; x++) {
             for (int y = 0; y < this._rowCount; y++) {
-                nonogram._cells[x][y] = this._cells[x][y];
+                nonogram.setCellAt(x, y, this.getCellAt(x, y));
             }
         }
 
@@ -144,10 +161,19 @@ public final class Nonogram implements ReadOnlyNonogram {
 
     public final void updateSatisfiedConstraints()
     {
-        updateSatisfiedConstraints(_rowConstraints, _columnConstraints, _cells);
+        CellKind[][] cells = new CellKind[_columnCount][_rowCount];
+        for (int row = 0; row < _rowCount; row++)
+        {
+            for (int column = 0; column < _rowCount; column++)
+            {
+                cells[column][row] = this.getCellAt(column, row);
+            }
+        }
+
+        updateSatisfiedConstraints(_rowConstraints, _columnConstraints, cells);
     }
 
-    public final void updateSatisfiedConstraints(NonogramConstraint[] rowConstraints, NonogramConstraint[] columnConstraints, CellKind[][] cells)
+    public static void updateSatisfiedConstraints(NonogramConstraint[] rowConstraints, NonogramConstraint[] columnConstraints, CellKind[][] cells)
     {
         for(int i=0; i < cells.length; i++)
         {
@@ -161,7 +187,7 @@ public final class Nonogram implements ReadOnlyNonogram {
     }
 
 
-    public final void updateSatisfiedColumnConstraints(NonogramConstraint[] rowConstraints, CellKind[][] cells, int rowIndexToUpdate)
+    public static void updateSatisfiedColumnConstraints(NonogramConstraint[] rowConstraints, CellKind[][] cells, int rowIndexToUpdate)
     {
         int arrSize = cells[0].length;
         CellKind[] rowSlice = new CellKind[arrSize];
@@ -173,7 +199,7 @@ public final class Nonogram implements ReadOnlyNonogram {
         updateSatisfiedConstraints(rowSlice, rowConstraints[rowIndexToUpdate]);
     }
 
-    public final void updateSatisfiedRowConstraints(NonogramConstraint[] columnConstraints, CellKind[][] cells, int columnIndexToUpdate)
+    public static void updateSatisfiedRowConstraints(NonogramConstraint[] columnConstraints, CellKind[][] cells, int columnIndexToUpdate)
     {
         int arrSize = cells.length;
         CellKind[] columSlice = new CellKind[arrSize];
@@ -185,7 +211,7 @@ public final class Nonogram implements ReadOnlyNonogram {
         updateSatisfiedConstraints(columSlice, columnConstraints[columnIndexToUpdate]);
     }
 
-    private void updateSatisfiedConstraints(CellKind[] cells, NonogramConstraint constraint) {
+    private static void updateSatisfiedConstraints(CellKind[] cells, NonogramConstraint constraint) {
         for (int i= 0; i < constraint.count(); i++)
         {
             constraint.getSlice(i).setSatisfied(false);
@@ -223,7 +249,7 @@ public final class Nonogram implements ReadOnlyNonogram {
         }
     }
 
-    private ArrayList<Block> devideIntoBlocks(CellKind[] cells) {
+    private static ArrayList<Block> devideIntoBlocks(CellKind[] cells) {
         int cellsSize = cells.length;
         ArrayList<Block> blockArray = new ArrayList<>();
         for (int i = 0; i < cells.length; i++)
@@ -257,8 +283,8 @@ public final class Nonogram implements ReadOnlyNonogram {
 
         return blockArray;
     }
-    private boolean isBlockSatisfySlice(NonogramConstraint constraint, int sliceIndex, Block block) {
 
+    private static boolean isBlockSatisfySlice(NonogramConstraint constraint, int sliceIndex, Block block) {
         if (block.getBlockSize() != constraint.getSlice(sliceIndex).getSize())
         {
             return false;

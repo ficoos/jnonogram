@@ -1,11 +1,15 @@
 package org.bs.jnonogram.util;
 
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.ReadOnlyListProperty;
+import javafx.beans.property.SimpleListProperty;
+import javafx.collections.FXCollections;
+
 import java.util.Collections;
 import java.util.List;
-import java.util.Stack;
 
 public class UndoStack <T extends UndoableAction> {
-    private Stack<T> _stack = new Stack<>();
+    private ListProperty<T> _stack = new SimpleListProperty<T>(this, "Stack", FXCollections.observableArrayList());
 
     public final void clear() {
         _stack.clear();
@@ -13,7 +17,7 @@ public class UndoStack <T extends UndoableAction> {
 
     public final void pushAction(T action) {
         action.doAction();
-        _stack.push(action);
+        _stack.add(action);
     }
 
     public final T undoAction() {
@@ -21,7 +25,7 @@ public class UndoStack <T extends UndoableAction> {
             return null;
         }
 
-        T action = _stack.pop();
+        T action = _stack.remove(0);
         action.undoAction();
         return action;
     }
@@ -32,5 +36,9 @@ public class UndoStack <T extends UndoableAction> {
 
     public List<T> getActionStack() {
         return Collections.unmodifiableList(_stack);
+    }
+
+    public ReadOnlyListProperty<T> actionStackProperty() {
+        return _stack;
     }
 }

@@ -1,0 +1,44 @@
+.constraints-grid {
+    -fx-border-color: black;
+}
+
+.row-constraints-grid {
+    -fx-border-width: 2px 2px 0px 0px;
+}
+
+.column-constraints-grid {
+    -fx-border-width: 0px 0px 2px 2px;
+}
+
+.column-constraints-grid Label {
+   -fx-border-color: black;
+   -fx-border-width: 0px 2px 0px 0px;
+}
+
+.row-constraints-grid Label {
+   -fx-border-color: black;
+   -fx-border-width: 0px 0px 2px 0px;
+}
+
+.nonogram-grid {
+    -fx-border-color: black;
+    -fx-border-width: 2px;
+}
+
+.nonogram-grid-cell {
+   -fx-border-color: gray;
+   -fx-border-width: 0px 1px 1px 0px 0px;
+}
+
+.grid-cell-unknown {
+    -fx-background-color: white;
+}
+
+.grid-cell-white {
+    -fx-background-color: white;
+    -fx-background-image: url('default-white.png');
+}
+
+.grid-cell-black {
+    -fx-background-color: black;
+}
