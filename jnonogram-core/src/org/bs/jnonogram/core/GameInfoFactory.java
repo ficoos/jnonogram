@@ -11,9 +11,15 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+
 public class GameInfoFactory {
+    private static final int _max_dimensions = 99;
+    private static final int _min_dimensions = 10;
+
     public static GameInfo loadFromXml(String path) throws GameInfoFactoryException {
         return loadFromXml(new File(path));
     }
@@ -52,6 +58,7 @@ public class GameInfoFactory {
                 updateMessage("Loading xml");
                 Thread.sleep(fakeDelay);
                 GameDescriptor descriptor = loadDescriptorFromFile(file);
+                _ValidateDescriptor(descriptor);
                 updateMessage("Initializing data");
                 updateProgress(1, 4);
                 Thread.sleep(fakeDelay);
@@ -80,6 +87,88 @@ public class GameInfoFactory {
         };
     }
 
+    private static void _ValidateDescriptor(GameDescriptor descriptor) throws GameInfoFactoryException  {
+        if(descriptor.getBoard() == null)
+        {
+            throw new GameInfoFactoryException("Board tag missing");
+        }
+        if(descriptor.getBoard().getSolution() == null)
+        {
+            throw new GameInfoFactoryException("Solution missing");
+        }
+        if(descriptor.getBoard().getDefinition() == null)
+        {
+            throw new GameInfoFactoryException("Board Definition missing");
+        }
+        if(descriptor.getBoard().getDefinition().getRows() == null)
+        {
+            throw new GameInfoFactoryException("Row tag is missing");
+        }
+        if(descriptor.getBoard().getDefinition().getColumns() == null)
+        {
+            throw new GameInfoFactoryException("Column tag is missing");
+        }
+        if(descriptor.getBoard().getDefinition().getRows().intValue() > _max_dimensions || descriptor.getBoard().getDefinition().getColumns().intValue() > _max_dimensions)
+        {
+            throw new GameInfoFactoryException("Rows and Columns must be less or equal to " + _max_dimensions);
+        }
+        if(descriptor.getBoard().getDefinition().getRows().intValue() < _min_dimensions || descriptor.getBoard().getDefinition().getColumns().intValue() < _min_dimensions)
+        {
+            throw new GameInfoFactoryException("Rows and Columns must be greater or equal to " + _min_dimensions);
+        }
+        if(descriptor.getBoard().getDefinition().getSlices() == null)
+        {
+            throw new GameInfoFactoryException("Slices tag missing");
+        }
+        if(descriptor.getGameType() == null)
+        {
+            throw new GameInfoFactoryException("Game Type missing");
+        }
+        if(descriptor.getBoard().getDefinition().getSlices().getSlice().size() >
+                descriptor.getBoard().getDefinition().getColumns().intValue() +
+                        descriptor.getBoard().getDefinition().getRows().intValue())
+        {
+            throw new GameInfoFactoryException("Number of slices exceed Columns and rows size definition");
+        }
+    }
+    private static void validateMultiPlayerDescriptor(GameDescriptor descriptor) throws GameInfoFactoryException {
+        if (descriptor.getMultiPlayers() == null)
+        {
+            throw new GameInfoFactoryException("Missing Multi Player Data");
+        }
+        try {
+            int moves = Integer.parseInt(descriptor.getMultiPlayers().getMoves());
+            if (moves < 1)
+            {
+                throw new GameInfoFactoryException("Illegal number of moves entered");
+            }
+        } catch(Exception e) {
+            throw new GameInfoFactoryException("Number of moves is not Legal. Enter a positive int");
+        }
+
+        if (descriptor.getMultiPlayers().getPlayers() == null ||
+                descriptor.getMultiPlayers().getPlayers().getPlayer() == null ||
+                descriptor.getMultiPlayers().getPlayers().getPlayer().size() < 1)
+        {
+            throw new GameInfoFactoryException("Missing Players");
+        }
+        Set<Integer> ids = new HashSet<Integer>();
+        for (Player player : descriptor.getMultiPlayers().getPlayers().getPlayer()){
+            if(player.getName() == null)
+            {
+                throw new GameInfoFactoryException("Missing player name");
+            }
+            if(player.getId() == null)
+            {
+                throw new GameInfoFactoryException("Missing player Id");
+            }
+            if(ids.contains(player.getId().intValue())){
+                throw new GameInfoFactoryException("Ids are not unique");
+            }
+            ids.add(player.getId().intValue());
+        }
+    }
+
     private static GameTypeInfo _loadGameTypeInfo(GameDescriptor descriptor) throws GameInfoFactoryException {
         GameTypeInfo gameTypeInfo = new GameTypeInfo();
         if (descriptor.getGameType().equalsIgnoreCase("SinglePlayer")) {
@@ -87,6 +176,7 @@ public class GameInfoFactory {
             gameTypeInfo.setMaxMoves(-1);
             gameTypeInfo.setTitle("Single Player Game");
         } else if (descriptor.getGameType().equalsIgnoreCase("MultiPlayer")) {
+            validateMultiPlayerDescriptor(descriptor);
             gameTypeInfo.setMaxMoves(Integer.valueOf(descriptor.getMultiPlayers().getMoves()));
             for(Player player : descriptor.getMultiPlayers().getPlayers().getPlayer()) {
                 PlayerType playerType;
@@ -95,7 +185,7 @@ public class GameInfoFactory {
                 } else if (player.getPlayerType().equalsIgnoreCase("computer")) {
                     playerType = PlayerType.Computer;
                 } else {
-                    return null;
+                    throw new GameInfoFactoryException("Invalid Player Type");
                 }
 
                 gameTypeInfo.getPlayersInformation().add(
@@ -106,7 +196,7 @@ public class GameInfoFactory {
 
             gameTypeInfo.setTitle("Multi Player Game");
         } else if (descriptor.getGameType().equalsIgnoreCase("DynamicMultiPlayer")) {
-            //TODO
+            throw new GameInfoFactoryException("DynamicMultiPlayer not yet supported");
         }
         else {
             throw new GameInfoFactoryException("Invalid or missing Game Type");
@@ -117,7 +207,7 @@ public class GameInfoFactory {
 
     private static void _validateNonogram(Nonogram nonogram) throws GameInfoFactoryException {
         _validateConstraints(nonogram);
-        _validatesolution(nonogram);
+        //_validatesolution(nonogram);
     }
 
     private static void _validatesolution(Nonogram nonogram)throws GameInfoFactoryException
@@ -148,42 +238,81 @@ public class GameInfoFactory {
     }
 
     private static void _validateConstraints(Nonogram nonogram) throws GameInfoFactoryException {
+        int constraintIndex = 0;
         for (NonogramConstraint constraint : nonogram.getColumnConstraints()) {
-            if (constraint.count() == 0)
+            constraintIndex++;
+            if (constraint == null || constraint.count() == 0)
             {
-                throw new GameInfoFactoryException("Missing constraints");
+                throw new GameInfoFactoryException("Missing constraints: column constraint number " + constraintIndex);
             }
         }
 
+        constraintIndex = 0;
         for (NonogramConstraint constraint : nonogram.getRowConstraints()) {
+            constraintIndex++;
             if (constraint == null || constraint.count() == 0)
             {
-                throw new GameInfoFactoryException("Missing constraints");
+                throw new GameInfoFactoryException("Missing constraints: row constraint number " + constraintIndex);
             }
         }
     }
 
-    private static void _loadSolution(GameDescriptor descriptor, NonogramBuilder nonogramBuilder) {
+    private static void _loadSolution(GameDescriptor descriptor, NonogramBuilder nonogramBuilder) throws GameInfoFactoryException {
         for (Square square: descriptor.getBoard().getSolution().getSquare()) {
+            if(square.getColumn().intValue() > descriptor.getBoard().getDefinition().getColumns().intValue())
+            {
+                throw new GameInfoFactoryException("Solution block exceed columns size definition, illegal value : " + square.getColumn().intValue());
+            }
+            if(square.getRow().intValue() > descriptor.getBoard().getDefinition().getRows().intValue())
+            {
+                throw new GameInfoFactoryException("Solution block exceed rows size definition, illegal value : " + square.getRow().intValue());
+            }
             nonogramBuilder.addSolutionBlock(square.getColumn().intValue() - 1, square.getRow().intValue() - 1);
+
         }
     }
 
     private static boolean _loadSlices(GameDescriptor descriptor, NonogramBuilder nonogramBuilder) throws GameInfoFactoryException {
+        int rowsSize = descriptor.getBoard().getDefinition().getRows().intValue();
+        int columnsSize = descriptor.getBoard().getDefinition().getColumns().intValue();
+
         for(Slice slice : descriptor.getBoard().getDefinition().getSlices().getSlice()) {
             SliceOrientation orientation;
             if (slice.getOrientation().equalsIgnoreCase("row")) {
                 orientation = SliceOrientation.Row;
+                if(slice.getId().intValue() > rowsSize)
+                {
+                    throw new GameInfoFactoryException("A slice is defined in a row number that is larger than number of rows, , illegal value :  "+ slice.getId().intValue());
+                }
             }
             else if (slice.getOrientation().equalsIgnoreCase("column")) {
                 orientation = SliceOrientation.Column;
+                if(slice.getId().intValue() > columnsSize)
+                {
+                    throw new GameInfoFactoryException("A slice is defined in a column number that is larger than number of columns, , illegal value : "+ slice.getId().intValue());
+                }
             } else {
-                throw new GameInfoFactoryException("Invalid orientation");
+                throw new GameInfoFactoryException("Invalid orientation: orientation value must be either 'column' or 'row'");
             }
-
+            if(slice.getBlocks() == null)
+            {
+                throw new GameInfoFactoryException("Missing Block definition for Slice");
+            }
             ArrayList<Integer> blocks = new ArrayList<>();
+            int blockSum = 0;
             for(String block: slice.getBlocks().split(",")) {
                 blocks.add(Integer.valueOf(block.trim()));
+                blockSum += Integer.valueOf(block.trim());
+            }
+
+            if(orientation == SliceOrientation.Column && blockSum > columnsSize)
+            {
+                throw new GameInfoFactoryException("Column blocks sum cannot be larger than column size itself, illegal Block Sum: " + blockSum);
+            }
+            if(orientation == SliceOrientation.Row && blockSum > rowsSize)
+            {
+                throw new GameInfoFactoryException("Column blocks sum cannot be larger than column size itself, illegal Block Sum: " + blockSum);
+
             }
 
             nonogramBuilder.addSlice(orientation, slice.getId().intValue() - 1, blocks);

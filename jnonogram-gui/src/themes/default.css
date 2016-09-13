@@ -31,14 +31,17 @@
 }
 
 .grid-cell-unknown {
-    -fx-background-color: white;
+    -fx-background-color: #A5D5F7;
 }
 
 .grid-cell-white {
-    -fx-background-color: white;
-    -fx-background-image: url('default-white.png');
+    -fx-background-color: #E8F5FF;
 }
 
 .grid-cell-black {
-    -fx-background-color: black;
+    -fx-background-color: #123752;
+}
+.grid-cell-selected {
+    -fx-border-width: 2;
+    -fx-border-color: #FFA400;
 }

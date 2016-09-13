@@ -23,7 +23,7 @@
           <Menu mnemonicParsing="false" text="File">
                <items>
                   <MenuItem mnemonicParsing="false" onAction="#openXml" text="Open XML..." />
-                  <Menu fx:id="lruMenu" mnemonicParsing="false" text="Open Recent Recent">
+                  <Menu fx:id="lruMenu" mnemonicParsing="false" text="Open Recent Games">
                     <items>
                       <MenuItem disable="true" mnemonicParsing="false" text="No recent XMLs" />
                     </items>

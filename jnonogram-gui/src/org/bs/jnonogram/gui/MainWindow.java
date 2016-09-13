@@ -60,10 +60,10 @@ public class MainWindow implements Initializable {
         dialog.showAndWait().ifPresent(result -> {
             recentDocuments.addItem(file);
             GameManager gameManager = new GameManager(result);
-
+            gameTabPane.getTabs().clear();
             for (PlayerState playerState: gameManager.getPlayerStates()) {
                 PlayerPane playerPane = new PlayerPane(playerState);
-                Tab tab = new Tab(playerState.getPlayerInfo().getName());
+                Tab tab = new Tab(String.format("%s (ID: %d)", playerState.getPlayerInfo().getName(), playerState.getPlayerInfo().getId()));
                 tab.setContent(playerPane);
                 gameTabPane.getTabs().add(tab);
             }

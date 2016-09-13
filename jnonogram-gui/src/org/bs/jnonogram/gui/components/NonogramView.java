@@ -10,13 +10,19 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.TextAlignment;
+import org.bs.jnonogram.core.CellPosition;
 import org.bs.jnonogram.core.Nonogram;
 import org.bs.jnonogram.core.NonogramConstraint;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class NonogramView extends GridPane implements Initializable {
@@ -31,6 +37,12 @@ public class NonogramView extends GridPane implements Initializable {
 
     private final SimpleObjectProperty<Nonogram> _nonogramProperty;
 
+    private final List<CellPosition> _selectedCells;
+
+    public final List<CellPosition> selectedCells() { return _selectedCells; }
+
+    public final void clearSelectedCells(){ _selectedCells.clear();}
+
     public final ObjectProperty<Nonogram> nonogramProperty() {
         return _nonogramProperty;
     }
@@ -40,10 +52,16 @@ public class NonogramView extends GridPane implements Initializable {
     }
 
     public void setNonogram(Nonogram nonogram) {
+        updateBoard(nonogram);
         _nonogramProperty.setValue(nonogram);
     }
 
     private void onNonogramChanged(Object sender, Nonogram oldValue, Nonogram newValue ) {
+        updateBoard(newValue);
+
+    }
+
+    private void updateBoard(Nonogram newValue) {
         int maxSlicesInRowConstraint = Arrays.stream(newValue.getRowConstraints())
                 .mapToInt(NonogramConstraint::count)
                 .max()
@@ -62,6 +80,7 @@ public class NonogramView extends GridPane implements Initializable {
         populateColumnConstraints(newValue, maxSlicesInColumnConstraint);
         populateRowConstraints(newValue, maxSlicesInRowConstraint);
         populateNonogram(newValue);
+        clearSelectedCells();
     }
 
     private void populateNonogram(Nonogram nonogram) {
@@ -75,6 +94,15 @@ public class NonogramView extends GridPane implements Initializable {
             cellButton.cellProperty().addListener((observable, oldValue, newValue) -> {
                 nonogram.cellsProperty().replace(position, newValue);
             });
+
+            cellButton.isSelectedProperty().addListener((observable, oldValue, newValue)  -> {
+                CellPosition cellPosition = new CellPosition(position.getColumn(), position.getRow());
+                if(_selectedCells.contains(cellPosition)){
+                    _selectedCells.remove(cellPosition);
+                } else {
+                    _selectedCells.add(cellPosition);
+                }
+            });
             nonogramGrid.add(cellButton, position.getColumn(), position.getRow());
         });
     }
@@ -86,7 +114,12 @@ public class NonogramView extends GridPane implements Initializable {
             for (int rowIdx = 0; rowIdx < constraint.count(); rowIdx++) {
                 int index = rowIdx + maxSlicesInColumnConstraint - constraint.count();
                 NonogramConstraint.Slice slice = constraint.getSlice(rowIdx);
+
                 Label lbl = new Label(Integer.toString(slice.getSize()));
+                if(slice.isSatisfied())
+                {
+                    lbl.setTextFill(Color.RED);
+                }
                 lbl.setMaxHeight(Double.MAX_VALUE);
                 lbl.setMaxWidth(Double.MAX_VALUE);
                 lbl.setAlignment(Pos.CENTER);
@@ -107,6 +140,10 @@ public class NonogramView extends GridPane implements Initializable {
                 int index = columnsIdx + maxSlicesInRowConstraint - constraint.count();
                 NonogramConstraint.Slice slice = constraint.getSlice(columnsIdx);
                 Label lbl = new Label(Integer.toString(slice.getSize()));
+                if(slice.isSatisfied())
+                {
+                    lbl.setTextFill(Color.RED);
+                }
                 lbl.setMaxHeight(Double.MAX_VALUE);
                 lbl.setMaxWidth(Double.MAX_VALUE);
                 lbl.setAlignment(Pos.CENTER);
@@ -154,6 +191,7 @@ public class NonogramView extends GridPane implements Initializable {
     public NonogramView() {
         _nonogramProperty = new SimpleObjectProperty<>();
         _nonogramProperty.addListener(this::onNonogramChanged);
+        _selectedCells = new LinkedList<>();
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(
                 "NonogramView.fxml"));
         fxmlLoader.setRoot(this);

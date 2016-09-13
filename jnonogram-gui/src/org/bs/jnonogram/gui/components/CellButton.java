@@ -1,6 +1,7 @@
 package org.bs.jnonogram.gui.components;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -24,8 +25,18 @@ public class CellButton extends GridPane implements Initializable {
     public ObjectProperty<Nonogram.CellKind> cellProperty() {
         return _cellProperty;
     }
-    
+
+    private SimpleBooleanProperty _isSelected;
+
+    public SimpleBooleanProperty isSelectedProperty() {
+        return _isSelected;
+    }
+
     private void onCellKindChanged(Object sender, Nonogram.CellKind oldValue, Nonogram.CellKind newValue) {
+        updateCellLook(newValue);
+
+    }
+    private void updateCellLook(Nonogram.CellKind newValue){
         contentLabel.getStyleClass().clear();
         if (newValue == null || newValue.equals(Nonogram.CellKind.Unknown)) {
             contentLabel.getStyleClass().add("grid-cell-unknown");
@@ -35,7 +46,6 @@ public class CellButton extends GridPane implements Initializable {
             contentLabel.getStyleClass().add("grid-cell-white");
         }
     }
-
     public CellButton() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(
                 "CellButton.fxml"));
@@ -46,23 +56,24 @@ public class CellButton extends GridPane implements Initializable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        _isSelected = new SimpleBooleanProperty();
+        _isSelected.setValue(false);
         _cellProperty = new SimpleObjectProperty<>(null);
         _cellProperty.addListener(this::onCellKindChanged);
         contentLabel.setOnMousePressed(this::onMousePressed);
     }
 
     private void onMousePressed(MouseEvent event) {
-        switch (event.getButton()) {
-            case PRIMARY:
-                _cellProperty.setValue(Nonogram.CellKind.Black);
-                break;
-            case MIDDLE:
-                _cellProperty.setValue(Nonogram.CellKind.Unknown);
-                break;
-            case SECONDARY:
-                _cellProperty.setValue(Nonogram.CellKind.White);
-                break;
+        if(_isSelected.getValue())
+        {
+            updateCellLook(_cellProperty.getValue());
         }
+        else {
+            contentLabel.getStyleClass().clear();
+            contentLabel.getStyleClass().add("grid-cell-selected");
+        }
+
+        isSelectedProperty().setValue(!isSelectedProperty().getValue());
     }
 
     @Override

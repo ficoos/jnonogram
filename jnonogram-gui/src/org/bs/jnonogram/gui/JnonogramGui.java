@@ -31,8 +31,8 @@ public class JnonogramGui extends Application {
         instance = this;
         Parent root = FXMLLoader.load(getClass().getResource("MainWindow.fxml"));
         primaryStage.setTitle("Jnonogram");
-        primaryStage.setScene(new Scene(root, 300, 275));
-        primaryStage.getScene().getStylesheets().add("themes/default.css");
+        primaryStage.setScene(new Scene(root, 600, 500));
+        primaryStage.getScene().getStylesheets().add("/themes/default.css");
         primaryStage.show();
     }
 

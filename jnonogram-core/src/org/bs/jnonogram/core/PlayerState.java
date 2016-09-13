@@ -6,6 +6,7 @@ import javafx.beans.value.ObservableListValue;
 import org.bs.jnonogram.util.UndoRedoStack;
 import org.bs.jnonogram.util.UndoableAction;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class PlayerState {
@@ -46,6 +47,18 @@ public class PlayerState {
         _moveCount++;
     }
 
+    public void applyMove(List<CellPosition> cellPositions, Nonogram.CellKind cellTypeTarget, String comment) {
+        List<NonogramMoveAction>  moveactions = new LinkedList<>();
+        for(CellPosition cellPosition : cellPositions){
+            NonogramMove move = new NonogramMove();
+            move.setOrigin(cellPosition);
+            move.setTargetKind(cellTypeTarget);
+            move.setSize(1);
+            move.setOrientation(SliceOrientation.Row);
+            moveactions.add(new NonogramMoveAction(_nonogramProperty.getValue(), move));
+        }
+        _undoRedoStack.pushAction(new NonogramMoveActionComposite(moveactions, comment, cellTypeTarget));
+    }
     public int getMoveCount() {
         return _moveCount;
     }
@@ -69,4 +82,6 @@ public class PlayerState {
     public ObservableListValue<UndoableAction> actionListProperty() {
         return _undoRedoStack.actionListProperty();
     }
+
+
 }

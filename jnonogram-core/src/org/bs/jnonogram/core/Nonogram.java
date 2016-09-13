@@ -164,7 +164,7 @@ public final class Nonogram implements ReadOnlyNonogram {
         CellKind[][] cells = new CellKind[_columnCount][_rowCount];
         for (int row = 0; row < _rowCount; row++)
         {
-            for (int column = 0; column < _rowCount; column++)
+            for (int column = 0; column < _columnCount; column++)
             {
                 cells[column][row] = this.getCellAt(column, row);
             }
@@ -235,6 +235,11 @@ public final class Nonogram implements ReadOnlyNonogram {
 
                     if (isBlockSatisfySlice(constraint, i, block)) {
                         numOfSliceThatSatisfyBlock = (blockArray.size() == constraint.count()) ? 1 :numOfSliceThatSatisfyBlock + 1;
+                        if(blockArray.size() > constraint.count())
+                        {
+                            numOfSliceThatSatisfyBlock = 0;
+                        }
+
                         indexOfLastSatisfiedSlice = i;
                     }
                 }

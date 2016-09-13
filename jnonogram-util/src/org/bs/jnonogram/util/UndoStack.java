@@ -25,7 +25,7 @@ public class UndoStack <T extends UndoableAction> {
             return null;
         }
 
-        T action = _stack.remove(0);
+        T action = _stack.remove(_stack.size() -1);
         action.undoAction();
         return action;
     }

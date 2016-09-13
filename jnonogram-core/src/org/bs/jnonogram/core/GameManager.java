@@ -22,7 +22,7 @@ public final class GameManager {
         _titleProperty.bind(info.titleProperty());
         _playerStates = new ArrayList<>();
         info.getPlayersInformation()
-                .forEach(playerInfo -> _playerStates.add(new PlayerState(_nonogram, playerInfo)));
+                .forEach(playerInfo -> _playerStates.add(new PlayerState(_nonogram.clone(), playerInfo)));
         _maxMoves = info.getMaxMoves();
     }
 

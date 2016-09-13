@@ -10,11 +10,22 @@
 <?import org.bs.jnonogram.gui.components.NonogramView?>
 
 
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.TextField?>
 <fx:root type="HBox" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <VBox spacing="5.0" HBox.hgrow="NEVER">
          <children>
+            <HBox VBox.vgrow="NEVER">
+               <children>
+                  <RadioButton mnemonicParsing="false" text="Black"  fx:id="radioBlack" selected="true"/>
+                  <RadioButton mnemonicParsing="false" text="White"  fx:id="radioWhite"/>
+                  <RadioButton mnemonicParsing="false" text="Unknown" fx:id="radioUnknown" />
+               </children>
+            </HBox>
             <Button fx:id="finishTurnButton" defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Finish Turn" />
+            <Label text="Move Description:" />
+            <TextField layoutX="-8.0" layoutY="1.0" fx:id="textFieldDescription" />
             <Button fx:id="undoButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Undo" />
             <HBox VBox.vgrow="NEVER">
                <children>
@@ -22,7 +33,7 @@
                   <Label fx:id="scoreLabel" text="0" />
                </children>
             </HBox>
-            <Label text="Move Hstory:" />
+            <Label text="Move History:" />
             <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
                <children>
                   <ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">

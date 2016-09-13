@@ -36,13 +36,9 @@ public final class NonogramMove {
     @Override
     public String toString() {
         return String.format(
-                "%s %s (%d,%d) [%d] : %s",
-                _orientation.toString(),
-                _targetKind.toString(),
-                _origin.getColumn(),
-                _origin.getRow(),
-                _size,
-                _comment);
+                "(%d,%d)",
+                (_origin.getColumn() + 1),
+                (_origin.getRow() +1));
     }
 
     public Nonogram.CellKind getTargetKind() {
