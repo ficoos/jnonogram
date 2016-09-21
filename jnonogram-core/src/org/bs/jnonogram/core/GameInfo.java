@@ -20,6 +20,8 @@ public class GameInfo {
         return _nonogramProperty.getValue();
     }
 
+    public String getGameType() {return _gameTypeInfo.getGameType();}
+
     public int getMaxMoves() {
         return _gameTypeInfo.getMaxMoves();
     }

@@ -9,11 +9,9 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import org.bs.jnonogram.core.GameInfo;
-import org.bs.jnonogram.core.GameInfoFactory;
-import org.bs.jnonogram.core.GameManager;
-import org.bs.jnonogram.core.PlayerState;
+import org.bs.jnonogram.core.*;
 import org.bs.jnonogram.gui.components.PlayerPane;
+import org.bs.jnonogram.gui.components.PreviewPanel;
 import org.bs.jnonogram.util.ObservableValueProxy;
 
 import java.io.File;
@@ -35,7 +33,10 @@ public class MainWindow implements Initializable {
     private TabPane gameTabPane;
 
     private static final int MaxRecentDocumentsNum = 10;
+
     private LeastRecentlyUsedModel<File> recentDocuments;
+
+    private GameManager _gameManager;
 
     public void quit(ActionEvent actionEvent) {
         Stage stage = (Stage) root.getScene().getWindow();
@@ -51,33 +52,95 @@ public class MainWindow implements Initializable {
         }
 
         openFile(file);
+
     }
 
     private void openFile(File file) {
         Task<GameInfo> task = GameInfoFactory.loadFromXmlAsync(file);
         JnonogramGui.getInstance().scheduleTask(task);
-        ProgressDialog<GameInfo> dialog = new ProgressDialog<>(task);
+        ProgressDialog<GameInfo> dialog = new ProgressDialog<>(task, JnonogramGui.getInstance().getCurrentStyleSheetsPath());
+
         dialog.showAndWait().ifPresent(result -> {
-            recentDocuments.addItem(file);
-            GameManager gameManager = new GameManager(result);
+                    recentDocuments.addItem(file);
+                    _gameManager = new GameManager(result);
             gameTabPane.getTabs().clear();
-            for (PlayerState playerState: gameManager.getPlayerStates()) {
-                PlayerPane playerPane = new PlayerPane(playerState);
+            Tab tab = new Tab("Preview");
+            PreviewPanel previewPanel = new PreviewPanel(_gameManager, this);
+            tab.setContent(previewPanel);
+            gameTabPane.getTabs().add(tab);
+        });
+    }
+
+    public void startGame() {
+        if(_gameManager != null)
+        {
+            gameTabPane.getTabs().clear();
+            for (PlayerState playerState: _gameManager.getPlayerStates()) {
+                PlayerPane playerPane = new PlayerPane(playerState, _gameManager);
+                if(!_gameManager.isMultiPlayerGame()) {
+                    playerPane.disablePassTurnButton();
+                }
                 Tab tab = new Tab(String.format("%s (ID: %d)", playerState.getPlayerInfo().getName(), playerState.getPlayerInfo().getId()));
                 tab.setContent(playerPane);
                 gameTabPane.getTabs().add(tab);
             }
 
             ((Stage) root.getScene().getWindow()).titleProperty().bind(
-                    new ObservableValueProxy<String, String>(gameManager.titleProperty()) {
+                    new ObservableValueProxy<String, String>(_gameManager.titleProperty()) {
                         @Override
                         protected String convertValue(String value) {
                             return "Jnonogram - " + value;
                         }
                     });
-        });
+
+            addGameEvents();
+            _gameManager.NextTurn();
+        }
+        else {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Game Not Loaded!");
+            alert.setHeaderText("Please load game first");
+        }
+
+    }
+    private Tab getCorrespondingPlayerTab(PlayerState playerState){
+        for (Tab tab : gameTabPane.getTabs()) {
+            if (((PlayerPane)tab.getContent()).getPlayerState().equals(playerState)) {
+                return tab;
+            }
+        }
+
+        return null;
     }
 
+    private void addGameEvents(){
+
+        _gameManager.addNextTurnListener(playerState -> {
+            Tab currentPlayerTab = getCorrespondingPlayerTab(playerState);
+
+            gameTabPane.getTabs().stream()
+                    .filter(tab -> ((PlayerPane)tab.getContent()).getPlayerState().getPlayerType() != PlayerType.Computer)
+                    .forEach(tab -> tab.setDisable(true));
+
+            gameTabPane.getSelectionModel().select(currentPlayerTab);
+            currentPlayerTab.setDisable(false);
+        });
+
+        _gameManager.getGameOverProperty().addListener((observable, oldValue, newValue) -> {
+            gameTabPane.getTabs().stream()
+                    .forEach(tab -> {
+                        if(tab!= null) {tab.setDisable(false);}
+                        ((PlayerPane)tab.getContent()).disableGameControl();
+                    });
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Game Over");
+            alert.setHeaderText("Game Over!");
+            alert.setContentText(_gameManager.getSummaryString());
+
+            alert.showAndWait();
+
+        });
+    }
     private void handleRecentDocumentOpen(ActionEvent actionEvent) {
         openFile((File)((MenuItem)actionEvent.getSource()).getUserData());
     }
@@ -142,5 +205,33 @@ public class MainWindow implements Initializable {
         MenuItem clearMenuItem = new MenuItem("Clear");
         clearMenuItem.setOnAction(event -> recentDocuments.clear());
         items.add(clearMenuItem);
+    }
+
+    public void skin1(ActionEvent actionEvent) {
+        root.getScene().getStylesheets().clear();
+        JnonogramGui.getInstance().setCurrentStyleSheetsPath("/themes/skin1.css");
+        root.getScene().getStylesheets().add(JnonogramGui.getInstance().getCurrentStyleSheetsPath());
+    }
+
+    public void skin2(ActionEvent actionEvent) {
+        root.getScene().getStylesheets().clear();
+        JnonogramGui.getInstance().setCurrentStyleSheetsPath("/themes/skin2.css");
+        root.getScene().getStylesheets().add(JnonogramGui.getInstance().getCurrentStyleSheetsPath());
+    }
+
+    public void skinDefault(ActionEvent actionEvent) {
+        root.getScene().getStylesheets().clear();
+        JnonogramGui.getInstance().setCurrentStyleSheetsPath("/themes/default.css");
+        root.getScene().getStylesheets().add(JnonogramGui.getInstance().getCurrentStyleSheetsPath());
+
+    }
+
+    public void about(ActionEvent event) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("About");
+        alert.setHeaderText("Nonogram Beta 0.1101.1101");
+        alert.setContentText("Creators:\n Bar Sasson 200959286\n Saggi Mizrahi 032493124");
+
+        alert.showAndWait();
     }
 }

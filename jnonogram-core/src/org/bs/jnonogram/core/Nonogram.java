@@ -4,6 +4,7 @@ import javafx.beans.property.MapProperty;
 import javafx.beans.property.MapPropertyBase;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import org.bs.jnonogram.core.jax.Block;
 
 import java.util.ArrayList;
@@ -147,8 +148,8 @@ public final class Nonogram implements ReadOnlyNonogram {
         }
 
         Nonogram nonogram = new Nonogram(
-                this._rowConstraints.clone(),
-                this._columnConstraints.clone(),
+                NonogramConstraint.clone(this._rowConstraints),
+                NonogramConstraint.clone(this._columnConstraints),
                 solution);
         for (int x = 0; x < this._columnCount; x++) {
             for (int y = 0; y < this._rowCount; y++) {
@@ -159,18 +160,39 @@ public final class Nonogram implements ReadOnlyNonogram {
         return  nonogram;
     }
 
-    public final void updateSatisfiedConstraints()
+    public final Task<Boolean> updateSatisfiedConstraints()
     {
-        CellKind[][] cells = new CellKind[_columnCount][_rowCount];
-        for (int row = 0; row < _rowCount; row++)
-        {
-            for (int column = 0; column < _columnCount; column++)
-            {
-                cells[column][row] = this.getCellAt(column, row);
-            }
-        }
+        return new Task<Boolean>() {
+            @Override
+            protected Boolean call() throws Exception {
+                updateTitle("Loading..");
+                updateMessage("Collecting state");
+                updateProgress(0, 4);
+                Thread.sleep(100);
 
-        updateSatisfiedConstraints(_rowConstraints, _columnConstraints, cells);
+                updateProgress(1, 4);
+                Thread.sleep(100);
+                CellKind[][] cells = new CellKind[_columnCount][_rowCount];
+                for (int row = 0; row < _rowCount; row++) {
+                    for (int column = 0; column < _columnCount; column++) {
+                        cells[column][row] = getCellAt(column, row);
+                    }
+                }
+                updateProgress(2, 4);
+                Thread.sleep(100);
+
+                updateMessage("Updating satisfied constraints");
+                updateProgress(3, 4);
+                Thread.sleep(200);
+
+                updateSatisfiedConstraints(_rowConstraints, _columnConstraints, cells);
+
+                updateMessage("Done");
+                updateProgress(4, 4);
+                Thread.sleep(100);
+                return true;
+            }
+        };
     }
 
     public static void updateSatisfiedConstraints(NonogramConstraint[] rowConstraints, NonogramConstraint[] columnConstraints, CellKind[][] cells)
@@ -191,10 +213,7 @@ public final class Nonogram implements ReadOnlyNonogram {
     {
         int arrSize = cells[0].length;
         CellKind[] rowSlice = new CellKind[arrSize];
-        for (int i=0; i < arrSize; i++)
-        {
-            rowSlice[i] = cells[rowIndexToUpdate][i];
-        }
+        System.arraycopy(cells[rowIndexToUpdate], 0, rowSlice, 0, arrSize);
 
         updateSatisfiedConstraints(rowSlice, rowConstraints[rowIndexToUpdate]);
     }

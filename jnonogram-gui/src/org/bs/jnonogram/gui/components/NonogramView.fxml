@@ -1,51 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.layout.*?>
 <?import java.lang.String?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.RowConstraints?>
-
-<fx:root hgap="5.0" styleClass="nonogram-view" type="GridPane" vgap="5.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1">
-  <columnConstraints>
-    <ColumnConstraints fillWidth="false" hgrow="NEVER" />
-    <ColumnConstraints fillWidth="false" hgrow="SOMETIMES" />
-  </columnConstraints>
-  <rowConstraints>
-    <RowConstraints fillHeight="false" vgrow="NEVER" />
-    <RowConstraints fillHeight="false" vgrow="NEVER" />
-  </rowConstraints>
-   <children>
-      <GridPane fx:id="columnConstraintsGrid" GridPane.columnIndex="1">
-        <columnConstraints>
-          <ColumnConstraints halignment="CENTER" hgrow="NEVER" maxWidth="22.0" minWidth="22.0" prefWidth="22.0" />
-        </columnConstraints>
-        <rowConstraints>
-          <RowConstraints maxHeight="22.0" minHeight="22.0" prefHeight="22.0" valignment="CENTER" vgrow="NEVER" />
-        </rowConstraints>
-         <styleClass>
-            <String fx:value="constraints-grid" />
-            <String fx:value="column-constraints-grid" />
-         </styleClass>
-      </GridPane>
-      <GridPane fx:id="rowConstraintsGrid" GridPane.rowIndex="1">
-        <columnConstraints>
-          <ColumnConstraints halignment="CENTER" hgrow="NEVER" maxWidth="1.7976931348623157E308" minWidth="22.0" prefWidth="22.0" />
-        </columnConstraints>
-        <rowConstraints>
-          <RowConstraints maxHeight="1.7976931348623157E308" minHeight="22.0" prefHeight="22.0" valignment="CENTER" vgrow="NEVER" />
-        </rowConstraints>
-         <styleClass>
-            <String fx:value="constraints-grid" />
-            <String fx:value="row-constraints-grid" />
-         </styleClass>
-      </GridPane>
-      <GridPane fx:id="nonogramGrid" styleClass="nonogram-grid" GridPane.columnIndex="1" GridPane.rowIndex="1">
-        <columnConstraints>
-          <ColumnConstraints halignment="CENTER" hgrow="NEVER" maxWidth="22.0" minWidth="22.0" prefWidth="22.0" />
-        </columnConstraints>
-        <rowConstraints>
-          <RowConstraints maxHeight="22.0" minHeight="22.0" prefHeight="22.0" valignment="CENTER" vgrow="NEVER" />
-        </rowConstraints>
-      </GridPane>
-   </children>
+<fx:root hgap="5.0" styleClass="nonogram-view" type="GridPane" vgap="5.0" xmlns="http://javafx.com/javafx/8.0.65"
+         xmlns:fx="http://javafx.com/fxml/1">
+    <columnConstraints>
+        <ColumnConstraints fillWidth="false" hgrow="NEVER"/>
+        <ColumnConstraints fillWidth="false" hgrow="SOMETIMES"/>
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints fillHeight="false" vgrow="NEVER"/>
+        <RowConstraints fillHeight="false" vgrow="NEVER"/>
+    </rowConstraints>
+    <GridPane fx:id="columnConstraintsGrid" GridPane.columnIndex="1">
+      <columnConstraints>
+          <ColumnConstraints halignment="CENTER" hgrow="NEVER" maxWidth="22.0" minWidth="22.0" prefWidth="22.0"/>
+      </columnConstraints>
+      <rowConstraints>
+          <RowConstraints maxHeight="22.0" minHeight="22.0" prefHeight="22.0" valignment="CENTER" vgrow="NEVER"/>
+      </rowConstraints>
+        <styleClass>
+          <String fx:value="constraints-grid"/>
+          <String fx:value="column-constraints-grid"/>
+        </styleClass>
+    </GridPane>
+    <GridPane fx:id="rowConstraintsGrid" GridPane.rowIndex="1">
+      <columnConstraints>
+          <ColumnConstraints halignment="CENTER" hgrow="NEVER" maxWidth="1.7976931348623157E308" minWidth="22.0"
+                             prefWidth="22.0"/>
+      </columnConstraints>
+      <rowConstraints>
+          <RowConstraints maxHeight="1.7976931348623157E308" minHeight="22.0" prefHeight="22.0" valignment="CENTER"
+                          vgrow="NEVER"/>
+      </rowConstraints>
+        <styleClass>
+          <String fx:value="constraints-grid"/>
+          <String fx:value="row-constraints-grid"/>
+        </styleClass>
+    </GridPane>
+    <GridPane fx:id="nonogramGrid" styleClass="nonogram-grid" GridPane.columnIndex="1" GridPane.rowIndex="1">
+      <columnConstraints>
+          <ColumnConstraints halignment="CENTER" hgrow="NEVER" maxWidth="22.0" minWidth="22.0" prefWidth="22.0"/>
+      </columnConstraints>
+      <rowConstraints>
+          <RowConstraints maxHeight="22.0" minHeight="22.0" prefHeight="22.0" valignment="CENTER" vgrow="NEVER"/>
+      </rowConstraints>
+    </GridPane>
 </fx:root>

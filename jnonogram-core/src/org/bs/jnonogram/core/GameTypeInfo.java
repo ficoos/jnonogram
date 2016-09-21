@@ -8,6 +8,8 @@ import java.util.List;
 
 public class GameTypeInfo {
     private int maxMoves;
+    private String _gameType;
+
     private final StringProperty _title = new StringPropertyBase() {
         @Override
         public Object getBean() {
@@ -39,6 +41,10 @@ public class GameTypeInfo {
     public void setMaxMoves(int maxMoves) {
         this.maxMoves = maxMoves;
     }
+
+    public String getGameType() { return _gameType; }
+
+    public void setGameType(String gameType) {  _gameType = gameType; }
 
     public String getTitle() {
         return _title.getValue();

@@ -25,7 +25,7 @@ public class GameInfoFactory {
     }
 
     private static GameDescriptor loadDescriptorFromFile(File file) throws GameInfoFactoryException {
-        JAXBContext context = null;
+        JAXBContext context;
         try {
             context = JAXBContext.newInstance(GameDescriptor.class);
             Unmarshaller unmarshaller = context.createUnmarshaller();
@@ -175,6 +175,7 @@ public class GameInfoFactory {
             gameTypeInfo.getPlayersInformation().add(new PlayerInfo(1, "Player", PlayerType.Human));
             gameTypeInfo.setMaxMoves(-1);
             gameTypeInfo.setTitle("Single Player Game");
+            gameTypeInfo.setGameType(descriptor.getGameType());
         } else if (descriptor.getGameType().equalsIgnoreCase("MultiPlayer")) {
             validateMultiPlayerDescriptor(descriptor);
             gameTypeInfo.setMaxMoves(Integer.valueOf(descriptor.getMultiPlayers().getMoves()));
@@ -195,6 +196,7 @@ public class GameInfoFactory {
             }
 
             gameTypeInfo.setTitle("Multi Player Game");
+            gameTypeInfo.setGameType(descriptor.getGameType());
         } else if (descriptor.getGameType().equalsIgnoreCase("DynamicMultiPlayer")) {
             throw new GameInfoFactoryException("DynamicMultiPlayer not yet supported");
         }
@@ -258,7 +260,14 @@ public class GameInfoFactory {
     }
 
     private static void _loadSolution(GameDescriptor descriptor, NonogramBuilder nonogramBuilder) throws GameInfoFactoryException {
+        Set<CellPosition> map = new HashSet<>();
         for (Square square: descriptor.getBoard().getSolution().getSquare()) {
+            CellPosition cellPosition = new CellPosition(square.getRow().intValue(),square.getColumn().intValue());
+            if(map.contains(cellPosition))
+            {
+                throw new GameInfoFactoryException(String.format("Solution contains two identical squares (%d,%d) ", cellPosition.getRow(),cellPosition.getColumn()));
+            }
+            map.add(cellPosition);
             if(square.getColumn().intValue() > descriptor.getBoard().getDefinition().getColumns().intValue())
             {
                 throw new GameInfoFactoryException("Solution block exceed columns size definition, illegal value : " + square.getColumn().intValue());
@@ -305,13 +314,13 @@ public class GameInfoFactory {
                 blockSum += Integer.valueOf(block.trim());
             }
 
-            if(orientation == SliceOrientation.Column && blockSum > columnsSize)
+            if(orientation == SliceOrientation.Column && blockSum > rowsSize)
             {
                 throw new GameInfoFactoryException("Column blocks sum cannot be larger than column size itself, illegal Block Sum: " + blockSum);
             }
-            if(orientation == SliceOrientation.Row && blockSum > rowsSize)
+            if(orientation == SliceOrientation.Row && blockSum > columnsSize)
             {
-                throw new GameInfoFactoryException("Column blocks sum cannot be larger than column size itself, illegal Block Sum: " + blockSum);
+                throw new GameInfoFactoryException("Row blocks sum cannot be larger than column size itself, illegal Block Sum: " + blockSum);
 
             }
 

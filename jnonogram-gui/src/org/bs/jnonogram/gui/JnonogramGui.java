@@ -22,17 +22,22 @@ public class JnonogramGui extends Application {
 
     private final ExecutorService threadPool;
 
+    private String _currentStyleSheetPath = "/themes/default.css";
+
+    public void setCurrentStyleSheetsPath(String newPath)  {_currentStyleSheetPath = newPath; }
+
+    public String getCurrentStyleSheetsPath()  { return _currentStyleSheetPath; }
+
     public void scheduleTask(Runnable task) {
         threadPool.submit(task);
     }
-
     @Override
     public void start(Stage primaryStage) throws Exception {
         instance = this;
         Parent root = FXMLLoader.load(getClass().getResource("MainWindow.fxml"));
         primaryStage.setTitle("Jnonogram");
         primaryStage.setScene(new Scene(root, 600, 500));
-        primaryStage.getScene().getStylesheets().add("/themes/default.css");
+        primaryStage.getScene().getStylesheets().add(_currentStyleSheetPath);
         primaryStage.show();
     }
 

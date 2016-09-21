@@ -19,9 +19,22 @@
    -fx-border-color: black;
    -fx-border-width: 0px 0px 2px 0px;
 }
+
 .root{
-    -fx-font-size: 10pt;
-    -fx-font-family: "Verdana";
+    -fx-font-size: 12pt;
+    -fx-font-family: "Courier New";
+    -fx-background: rgb(225, 228, 203);
+}
+
+.button{
+    -fx-text-fill: rgb(49, 89, 23);
+    -fx-border-color: rgb(49, 89, 23);
+    -fx-border-radius: 3;
+    -fx-padding: 3 6 6 6;
+    -fx-background-color: #DFB951;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 5;
 }
 
 .nonogram-grid {
@@ -35,17 +48,17 @@
 }
 
 .grid-cell-unknown {
-    -fx-background-color: #A5D5F7;
+    -fx-background-color: #82B771;
 }
 
 .grid-cell-white {
-    -fx-background-color: #E8F5FF;
+    -fx-background-color: #C1E787;
 }
 
 .grid-cell-black {
-    -fx-background-color: #123752;
+    -fx-background-color: #3C1A60;
 }
 .grid-cell-selected {
     -fx-border-width: 2;
-    -fx-border-color: #FFA400;
+    -fx-border-color: #394776;
 }

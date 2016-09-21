@@ -1,7 +1,6 @@
 package org.bs.jnonogram.core;
 
 import org.bs.jnonogram.util.UndoableAction;
-import sun.invoke.empty.Empty;
 
 import java.util.List;
 

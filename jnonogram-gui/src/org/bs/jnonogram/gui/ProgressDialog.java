@@ -12,7 +12,7 @@ import java.io.IOException;
 import static javafx.scene.control.ButtonType.CLOSE;
 
 public class ProgressDialog<V> extends Dialog<V>{
-    public ProgressDialog(Task<V> task) {
+    public ProgressDialog(Task<V> task, String styleSheetPath) {
         super();
         FXMLLoader loader = new FXMLLoader(getClass().getResource("ProgressDialog.fxml"));
         loader.setControllerFactory(aClass -> {
@@ -26,6 +26,7 @@ public class ProgressDialog<V> extends Dialog<V>{
         Parent root;
         try {
             root = loader.load();
+            root.getStylesheets().add(styleSheetPath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

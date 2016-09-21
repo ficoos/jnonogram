@@ -5,8 +5,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import org.bs.jnonogram.core.GameManager;
 import org.bs.jnonogram.core.Nonogram;
 import org.bs.jnonogram.core.PlayerState;
+import org.bs.jnonogram.core.PlayerType;
 import org.bs.jnonogram.util.UndoableAction;
 
 import java.io.IOException;
@@ -15,13 +17,19 @@ import java.util.ResourceBundle;
 
 public class PlayerPane extends HBox implements Initializable {
 
-    private PlayerState state;
+    private PlayerState _state;
 
     @FXML
-    private Button finishTurnButton;
+    private Button applyMoveButton;
+
+    @FXML
+    private Button passTurnButton;
 
     @FXML
     private Button undoButton;
+
+    @FXML
+    private Button quitGame;
 
     @FXML
     private ListView<UndoableAction> moveHistoryListView;
@@ -30,22 +38,29 @@ public class PlayerPane extends HBox implements Initializable {
     private Label scoreLabel;
 
     @FXML
+    private Label turnCountLabel;
+
+    @FXML
     private NonogramView nonogramView;
 
     @FXML
-    private RadioButton radioBlack;
+    private RadioButton blackRadioButton;
 
     @FXML
-    private RadioButton radioWhite;
+    private RadioButton whiteRadioButton;
 
     @FXML
-    private RadioButton radioUnknown;
+    private RadioButton unknownRadioButton;
 
     @FXML
-    private TextField textFieldDescription;
+    private TextField descriptionTextField;
 
-    public PlayerPane(PlayerState state) {
-        this.state = state;
+    @FXML
+    private CheckBox updateSatisfiedConstraintsCheckbox;
+
+
+    public PlayerPane(PlayerState state, GameManager manager) {
+        this._state = state;
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(
                 "PlayerPane.fxml"));
         fxmlLoader.setRoot(this);
@@ -56,46 +71,118 @@ public class PlayerPane extends HBox implements Initializable {
             throw new RuntimeException(e);
         }
         ToggleGroup toggleGroup = new ToggleGroup();
-        radioBlack.setToggleGroup(toggleGroup);
-        radioUnknown.setToggleGroup(toggleGroup);
-        radioWhite.setToggleGroup(toggleGroup);
+        blackRadioButton.setToggleGroup(toggleGroup);
+        unknownRadioButton.setToggleGroup(toggleGroup);
+        whiteRadioButton.setToggleGroup(toggleGroup);
 
-        this.nonogramView.nonogramProperty().bindBidirectional(state.nonogramProperty());
-        this.moveHistoryListView.itemsProperty().bind(state.actionListProperty());
-        this.finishTurnButton.setOnAction(event -> {
-            state.applyMove(nonogramView.selectedCells(), getCellTypeTarget(), getComment());
-            updateFieldsAfterAction();
+        if(state.getPlayerInfo().getPlayerType() == PlayerType.Computer)
+        {
+            disableGameControl();
+        }
+        
+       addControlsEvents(manager);
+    }
+
+    private final void addControlsEvents(GameManager manager){
+        boolean k_updateBoard = true;
+        this.nonogramView.nonogramProperty().bindBidirectional(_state.nonogramProperty());
+        this.moveHistoryListView.itemsProperty().bind(_state.actionListProperty());
+        updateSatisfiedConstraintsCheckbox.selectedProperty().bindBidirectional((nonogramView.showSatisfiedBlockProperty()));
+        updateSatisfiedConstraintsCheckbox.setOnAction(event -> updateControlsAfterAction(k_updateBoard));
+
+        if(manager.isMultiPlayerGame())
+        {
+            turnCountLabel.textProperty().bind(manager.getCurrentTurnProperty().asString().concat("/"+manager.getMaxMoves()));
+        }
+        else {
+            turnCountLabel.setText("Not Available");
+        }
+
+        this.applyMoveButton.setOnAction(event -> {
+            _state.applyMove(nonogramView.selectedCells(), getSelectedCellTypeTarget(), getMoveDescription());
+            updateControlsAfterAction(k_updateBoard);
+            manager.checkIfPlayerFinishedBoard();
         });
 
         this.undoButton.setOnAction(event -> {
-            state.undoAction();
-            updateFieldsAfterAction();
+            _state.undoAction();
+            updateControlsAfterAction(k_updateBoard);
         });
+
+        this.passTurnButton.setOnAction(event -> {
+            if(!manager.getGameOverProperty().getValue()) {
+                _state.resetTurnMoveCount();
+                updateControlsAfterAction(!k_updateBoard);
+            }
+            manager.NextTurn();
+        });
+
+        _state.finishedComputerMoveAddListerner(playerState -> {
+            manager.checkIfPlayerFinishedBoard();
+            if(!manager.getGameOverProperty().getValue()) {
+                _state.resetTurnMoveCount();
+                updateControlsAfterAction(k_updateBoard);
+            }
+            manager.NextTurn();
+        });
+
+        quitGame.setOnAction(event -> manager.getGameOverProperty().setValue(true));
     }
 
-    private final void updateFieldsAfterAction()
+    private final void updateControlsAfterAction(boolean updateBoard)
     {
-        nonogramView.setNonogram(state.nonogramProperty().getValue());
-        this.scoreLabel.setText(Integer.toString(state.getScore()));
-        textFieldDescription.clear();
+        if(updateBoard) {
+            nonogramView.updateBoard(_state.nonogramProperty().getValue());
+        }
+        this.scoreLabel.setText(Integer.toString(_state.getScore()));
+        descriptionTextField.clear();
+        if(_state.isMaxTurnMovesReached()){
+            applyMoveButton.setDisable(true);
+        }
+        else if(_state.getPlayerInfo().getPlayerType() != PlayerType.Computer){
+            applyMoveButton.setDisable(false);
+        }
+
     }
 
-    private final String getComment()
+    private final String getMoveDescription()
     {
-        return textFieldDescription.getText();
+        return descriptionTextField.getText();
     }
 
-    private final Nonogram.CellKind getCellTypeTarget()
+    private final Nonogram.CellKind getSelectedCellTypeTarget()
     {
-        if(radioWhite.isSelected()){
+        if(whiteRadioButton.isSelected()){
             return Nonogram.CellKind.White;
         }
-        else if (radioBlack.isSelected()) {
+        else if (blackRadioButton.isSelected()) {
             return Nonogram.CellKind.Black;
         } else{
             return Nonogram.CellKind.Unknown;
         }
     }
+
+    public void disablePassTurnButton()
+    {
+        passTurnButton.setDisable(true);
+    }
+
+    public void disableGameControl(){
+        disablePassTurnButton();
+        applyMoveButton.setDisable(true);
+        nonogramView.setDisable(true);
+        undoButton.setDisable(true);
+        descriptionTextField.setDisable(true);
+        blackRadioButton.setDisable(true);
+        whiteRadioButton.setDisable(true);
+        unknownRadioButton.setDisable(true);
+        quitGame.setDisable(true);
+        updateSatisfiedConstraintsCheckbox.setDisable(true);
+
+    }
+
+
+    public PlayerState getPlayerState() { return _state;}
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {

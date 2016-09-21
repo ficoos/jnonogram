@@ -19,9 +19,24 @@
    -fx-border-color: black;
    -fx-border-width: 0px 0px 2px 0px;
 }
+
 .root{
-    -fx-font-size: 10pt;
-    -fx-font-family: "Verdana";
+    -fx-font-size: 9pt;
+    -fx-font-family: "Arial Black";
+    -fx-background: #38C9CC;
+    -fx-font-weight: bold
+}
+
+.button{
+    -fx-text-fill: #99CC66;
+    -fx-border-color: rgb(49, 89, 23);
+    -fx-border-radius: 0;
+     -fx-border-radius: 0;
+    -fx-padding: 3 6 6 6;
+    -fx-background-color: #666699;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 5;
 }
 
 .nonogram-grid {
@@ -35,17 +50,17 @@
 }
 
 .grid-cell-unknown {
-    -fx-background-color: #A5D5F7;
+    -fx-background-color: #D5DD94;
 }
 
 .grid-cell-white {
-    -fx-background-color: #E8F5FF;
+    -fx-background-color: #F5F5DC;
 }
 
 .grid-cell-black {
-    -fx-background-color: #123752;
+    -fx-background-color: #666699;
 }
 .grid-cell-selected {
     -fx-border-width: 2;
-    -fx-border-color: #FFA400;
+    -fx-border-color: #212471;
 }

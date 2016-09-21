@@ -1,7 +1,9 @@
 package org.bs.jnonogram.gui.components;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -11,12 +13,12 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Paint;
 import javafx.scene.text.TextAlignment;
 import org.bs.jnonogram.core.CellPosition;
 import org.bs.jnonogram.core.Nonogram;
 import org.bs.jnonogram.core.NonogramConstraint;
+import org.bs.jnonogram.gui.JnonogramGui;
+import org.bs.jnonogram.gui.ProgressDialog;
 
 import java.io.IOException;
 import java.net.URL;
@@ -35,13 +37,25 @@ public class NonogramView extends GridPane implements Initializable {
     @FXML
     private GridPane nonogramGrid;
 
+    private SimpleBooleanProperty _showSatisfiedBlock = new SimpleBooleanProperty();
+
     private final SimpleObjectProperty<Nonogram> _nonogramProperty;
 
     private final List<CellPosition> _selectedCells;
 
-    public final List<CellPosition> selectedCells() { return _selectedCells; }
+    private void onNonogramChanged(Object sender, Nonogram oldValue, Nonogram newValue) { updateBoard(newValue); }
 
-    public final void clearSelectedCells(){ _selectedCells.clear();}
+    public final SimpleBooleanProperty showSatisfiedBlockProperty() {
+        return _showSatisfiedBlock;
+    }
+
+    public final List<CellPosition> selectedCells() {
+        return _selectedCells;
+    }
+
+    public final void clearSelectedCells() {
+        _selectedCells.clear();
+    }
 
     public final ObjectProperty<Nonogram> nonogramProperty() {
         return _nonogramProperty;
@@ -52,16 +66,16 @@ public class NonogramView extends GridPane implements Initializable {
     }
 
     public void setNonogram(Nonogram nonogram) {
-        updateBoard(nonogram);
         _nonogramProperty.setValue(nonogram);
     }
 
-    private void onNonogramChanged(Object sender, Nonogram oldValue, Nonogram newValue ) {
-        updateBoard(newValue);
 
-    }
+    public void updateBoard(Nonogram newValue) {
+        if(_showSatisfiedBlock.getValue())
+        {
+            updateSatisfiedBlocks();
+        }
 
-    private void updateBoard(Nonogram newValue) {
         int maxSlicesInRowConstraint = Arrays.stream(newValue.getRowConstraints())
                 .mapToInt(NonogramConstraint::count)
                 .max()
@@ -95,9 +109,9 @@ public class NonogramView extends GridPane implements Initializable {
                 nonogram.cellsProperty().replace(position, newValue);
             });
 
-            cellButton.isSelectedProperty().addListener((observable, oldValue, newValue)  -> {
+            cellButton.isSelectedProperty().addListener((observable, oldValue, newValue) -> {
                 CellPosition cellPosition = new CellPosition(position.getColumn(), position.getRow());
-                if(_selectedCells.contains(cellPosition)){
+                if (_selectedCells.contains(cellPosition)) {
                     _selectedCells.remove(cellPosition);
                 } else {
                     _selectedCells.add(cellPosition);
@@ -108,16 +122,14 @@ public class NonogramView extends GridPane implements Initializable {
     }
 
     private void populateColumnConstraints(Nonogram nonogram, int maxSlicesInColumnConstraint) {
-        for (int columnIdx = 0; columnIdx < nonogram.getColumnCount(); columnIdx++)
-        {
+        for (int columnIdx = 0; columnIdx < nonogram.getColumnCount(); columnIdx++) {
             NonogramConstraint constraint = nonogram.getColumnConstraints()[columnIdx];
             for (int rowIdx = 0; rowIdx < constraint.count(); rowIdx++) {
                 int index = rowIdx + maxSlicesInColumnConstraint - constraint.count();
                 NonogramConstraint.Slice slice = constraint.getSlice(rowIdx);
 
                 Label lbl = new Label(Integer.toString(slice.getSize()));
-                if(slice.isSatisfied())
-                {
+                if (slice.isSatisfied() && _showSatisfiedBlock.getValue()) {
                     lbl.setTextFill(Color.RED);
                 }
                 lbl.setMaxHeight(Double.MAX_VALUE);
@@ -133,15 +145,13 @@ public class NonogramView extends GridPane implements Initializable {
     }
 
     private void populateRowConstraints(Nonogram nonogram, int maxSlicesInRowConstraint) {
-        for (int rowIdx = 0; rowIdx < nonogram.getRowCount(); rowIdx++)
-        {
+        for (int rowIdx = 0; rowIdx < nonogram.getRowCount(); rowIdx++) {
             NonogramConstraint constraint = nonogram.getRowConstraints()[rowIdx];
             for (int columnsIdx = 0; columnsIdx < constraint.count(); columnsIdx++) {
                 int index = columnsIdx + maxSlicesInRowConstraint - constraint.count();
                 NonogramConstraint.Slice slice = constraint.getSlice(columnsIdx);
                 Label lbl = new Label(Integer.toString(slice.getSize()));
-                if(slice.isSatisfied())
-                {
+                if (slice.isSatisfied() && _showSatisfiedBlock.getValue()) {
                     lbl.setTextFill(Color.RED);
                 }
                 lbl.setMaxHeight(Double.MAX_VALUE);
@@ -202,6 +212,14 @@ public class NonogramView extends GridPane implements Initializable {
         } catch (IOException exception) {
             throw new RuntimeException(exception);
         }
+    }
+
+    private void updateSatisfiedBlocks() {
+        Task<Boolean> task = _nonogramProperty.getValue().updateSatisfiedConstraints();
+        JnonogramGui.getInstance().scheduleTask(task);
+        ProgressDialog dialog = new ProgressDialog<>(task, JnonogramGui.getInstance().getCurrentStyleSheetsPath());
+        task.setOnSucceeded(e -> dialog.close());
+        dialog.showAndWait();
     }
 
     @Override

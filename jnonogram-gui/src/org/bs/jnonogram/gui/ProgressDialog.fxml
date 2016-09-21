@@ -1,23 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.ButtonType?>
-<?import javafx.scene.control.DialogPane?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressBar?>
+
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.VBox?>
-
-
-<DialogPane fx:id="pane" prefHeight="158.0" prefWidth="347.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.bs.jnonogram.gui.ProgressDialogController">
+<DialogPane fx:id="pane" prefHeight="158.0" prefWidth="347.0" xmlns="http://javafx.com/javafx/8.0.65"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.bs.jnonogram.gui.ProgressDialogController">
    <content>
       <VBox spacing="5.0">
-         <children>
-            <Label fx:id="messageLabel" maxWidth="1.7976931348623157E308" text="Label" VBox.vgrow="ALWAYS" />
-            <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308" progress="0.0" VBox.vgrow="ALWAYS" />
-            <Label fx:id="errorLabel" textFill="RED" wrapText="true" />
-         </children>
+         <Label fx:id="messageLabel" maxWidth="1.7976931348623157E308" text="Label" VBox.vgrow="ALWAYS"/>
+         <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308" progress="0.0" VBox.vgrow="ALWAYS"/>
+         <Label fx:id="errorLabel" textFill="RED" wrapText="true"/>
       </VBox>
    </content>
-   <buttonTypes>
-      <ButtonType fx:constant="CLOSE" />
-   </buttonTypes>
+   <ButtonType fx:constant="CLOSE"/>
 </DialogPane>

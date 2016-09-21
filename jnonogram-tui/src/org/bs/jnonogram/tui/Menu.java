@@ -1,7 +1,6 @@
 package org.bs.jnonogram.tui;
 
 import java.util.ArrayList;
-import java.util.function.Function;
 
 public final class Menu {
     private String _title;

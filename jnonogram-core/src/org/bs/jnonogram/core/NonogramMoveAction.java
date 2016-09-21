@@ -21,7 +21,6 @@ public class NonogramMoveAction implements UndoableAction {
             _nonogram.setCellAt(cellPosition, _move.getTargetKind());
             i[0]++;
         });
-        _nonogram.updateSatisfiedConstraints();
     }
 
     @Override
@@ -31,7 +30,6 @@ public class NonogramMoveAction implements UndoableAction {
             _nonogram.setCellAt(cellPosition, _backup[i[0]]);
             i[0]++;
         });
-        _nonogram.updateSatisfiedConstraints();
     }
 
     @Override

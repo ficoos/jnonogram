@@ -3,7 +3,10 @@ package org.bs.jnonogram.gui;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import org.bs.jnonogram.util.ObservableValueProxy;
 
 import java.net.URL;

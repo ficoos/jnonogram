@@ -28,12 +28,15 @@
                       <MenuItem disable="true" mnemonicParsing="false" text="No recent XMLs" />
                     </items>
                   </Menu>
+                   <MenuItem mnemonicParsing="false" onAction="#skinDefault" text="Default Skin" />
+                   <MenuItem mnemonicParsing="false" onAction="#skin1" text="Skin 1" />
+                   <MenuItem mnemonicParsing="false" onAction="#skin2" text="Skin 2" />
                   <MenuItem mnemonicParsing="false" onAction="#quit" text="Quit" />
                </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Help">
             <items>
-              <MenuItem mnemonicParsing="false" text="About" />
+              <MenuItem mnemonicParsing="false"  onAction="#about" text="About" />
             </items>
           </Menu>
         </menus>
