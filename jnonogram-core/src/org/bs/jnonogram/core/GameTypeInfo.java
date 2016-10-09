@@ -8,6 +8,7 @@ import java.util.List;
 
 public class GameTypeInfo {
     private int maxMoves;
+    private int _maxPlayers;
     private String _gameType;
 
     private final StringProperty _title = new StringPropertyBase() {
@@ -56,5 +57,13 @@ public class GameTypeInfo {
 
     public List<PlayerInfo> getPlayersInformation() {
         return playersInformation;
+    }
+
+    public void setMaxPlayers(int maxPlayers) {
+        this._maxPlayers = maxPlayers;
+    }
+
+    public int getMaxPlayers() {
+        return _maxPlayers;
     }
 }

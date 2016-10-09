@@ -10,10 +10,12 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 
 public class GameInfoFactory {
@@ -24,7 +26,7 @@ public class GameInfoFactory {
         return loadFromXml(new File(path));
     }
 
-    private static GameDescriptor loadDescriptorFromFile(File file) throws GameInfoFactoryException {
+    private static GameDescriptor loadDescriptorFromFile(InputStream file) throws GameInfoFactoryException {
         JAXBContext context;
         try {
             context = JAXBContext.newInstance(GameDescriptor.class);
@@ -36,19 +38,32 @@ public class GameInfoFactory {
     }
 
     public static GameInfo loadFromXml(File file) throws GameInfoFactoryException {
-        Task<GameInfo> task = loadFromXmlAsync(file);
-        task.run();
         try {
-            return task.get();
-        } catch (InterruptedException e) {
-            // Should never happen
-            throw new RuntimeException(e);
-        } catch (ExecutionException e) {
-            throw (GameInfoFactoryException) e.getCause();
+            return loadFromXml(new FileInputStream(file));
+        } catch (FileNotFoundException e) {
+            throw new GameInfoFactoryException("File does not exist", e);
         }
     }
 
-    public static Task<GameInfo> loadFromXmlAsync(File file) {
+    public static GameInfo loadFromXml(InputStream stream) throws GameInfoFactoryException {
+        GameDescriptor descriptor = loadDescriptorFromFile(stream);
+        _ValidateDescriptor(descriptor);
+        NonogramBuilder nonogramBuilder = new NonogramBuilder(
+                descriptor.getBoard().getDefinition().getRows().intValue(),
+                descriptor.getBoard().getDefinition().getColumns().intValue()
+        );
+        _loadSlices(descriptor, nonogramBuilder);
+        _loadSolution(descriptor, nonogramBuilder);
+        Nonogram nonogram = nonogramBuilder.build();
+        _validateNonogram(nonogram);
+        GameTypeInfo gameTypeInfo = _loadGameTypeInfo(descriptor);
+
+        return new GameInfo(
+                nonogram,
+                gameTypeInfo);
+    }
+
+    public static Task<GameInfo> loadFromXmlAsync(InputStream file) {
         return new Task<GameInfo>() {
             @Override
             protected GameInfo call() throws Exception {
@@ -152,7 +167,7 @@ public class GameInfoFactory {
         {
             throw new GameInfoFactoryException("Missing Players");
         }
-        Set<Integer> ids = new HashSet<Integer>();
+        Set<Integer> ids = new HashSet<>();
         for (Player player : descriptor.getMultiPlayers().getPlayers().getPlayer()){
             if(player.getName() == null)
             {
@@ -176,6 +191,7 @@ public class GameInfoFactory {
             gameTypeInfo.setMaxMoves(-1);
             gameTypeInfo.setTitle("Single Player Game");
             gameTypeInfo.setGameType(descriptor.getGameType());
+            gameTypeInfo.setMaxPlayers(1);
         } else if (descriptor.getGameType().equalsIgnoreCase("MultiPlayer")) {
             validateMultiPlayerDescriptor(descriptor);
             gameTypeInfo.setMaxMoves(Integer.valueOf(descriptor.getMultiPlayers().getMoves()));
@@ -197,8 +213,11 @@ public class GameInfoFactory {
 
             gameTypeInfo.setTitle("Multi Player Game");
             gameTypeInfo.setGameType(descriptor.getGameType());
+            gameTypeInfo.setMaxPlayers(gameTypeInfo.getPlayersInformation().size());
         } else if (descriptor.getGameType().equalsIgnoreCase("DynamicMultiPlayer")) {
-            throw new GameInfoFactoryException("DynamicMultiPlayer not yet supported");
+            gameTypeInfo.setTitle(descriptor.getDynamicMultiPlayers().getGametitle());
+            gameTypeInfo.setMaxMoves(Integer.parseInt(descriptor.getDynamicMultiPlayers().getTotalmoves()));
+            gameTypeInfo.setMaxPlayers(Integer.parseInt(descriptor.getDynamicMultiPlayers().getTotalPlayers()));
         }
         else {
             throw new GameInfoFactoryException("Invalid or missing Game Type");

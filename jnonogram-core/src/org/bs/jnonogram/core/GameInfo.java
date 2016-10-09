@@ -2,15 +2,16 @@ package org.bs.jnonogram.core;
 
 import javafx.beans.property.*;
 
-import java.util.Collections;
 import java.util.List;
 
 public class GameInfo {
     private final SimpleObjectProperty<Nonogram> _nonogramProperty;
     private final GameTypeInfo _gameTypeInfo;
     private final StringProperty _titleProperty = new SimpleStringProperty(this, "Title");
+    private final int _maxPlayers;
 
     public GameInfo(Nonogram nonogram, GameTypeInfo gameTypeInfo) {
+        _maxPlayers = gameTypeInfo.getMaxPlayers();
         _nonogramProperty = new SimpleObjectProperty<>(nonogram);
         _gameTypeInfo = gameTypeInfo;
         _titleProperty.bind(gameTypeInfo.titleProperty());
@@ -31,7 +32,7 @@ public class GameInfo {
     }
 
     public List<PlayerInfo> getPlayersInformation() {
-        return Collections.unmodifiableList(_gameTypeInfo.getPlayersInformation());
+        return _gameTypeInfo.getPlayersInformation();
     }
 
     public ReadOnlyStringProperty titleProperty() {
@@ -40,5 +41,9 @@ public class GameInfo {
 
     public ObjectProperty<Nonogram> nonogramProperty() {
         return _nonogramProperty;
+    }
+
+    public int getMaxPlayers() {
+        return _maxPlayers;
     }
 }

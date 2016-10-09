@@ -1,0 +1,17 @@
+.ncell {
+    width: 32px;
+    height: 32px;
+    border: 1px solid darkgray;
+}
+
+.ncell-unknown {
+    background-color: lightgray;
+}
+
+.ncell-white {
+    background-color: white;
+}
+
+.ncell-black {
+    background-color: black;
+}
